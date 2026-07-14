@@ -332,7 +332,7 @@ function showWinnerEffect(winner) {
 
 function createConfetti(winner) {
     const confetti = document.createElement('div');
-    const color = winner === 'red' ? '#f87171' : '#fbbf24';
+    const color = winner === 'red' ? '#e03e33' : '#f0a800';
 
     confetti.className = 'confetti-piece';
     confetti.style.left = `${Math.random() * 100}%`;

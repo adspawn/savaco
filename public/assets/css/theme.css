@@ -1,53 +1,68 @@
 /* =========================================================
    サバゲー進行システム - 共通デザインシステム
+   ミリタリーHUD調 (タクティカルダーク + シグナルオレンジ)
    admin / display 両画面で読み込まれる基礎スタイル
    ========================================================= */
 
 :root {
-  /* ベースカラー（フィールド運用を想定したダークテーマ） */
-  --bg: #0b1120;
-  --bg-elevated: #121a2e;
-  --surface: #17213a;
-  --surface-2: #1f2c4a;
-  --border: #2a3958;
-  --border-soft: #223050;
+  /* ベースカラー */
+  --bg: #0a0c0d;
+  --bg-elevated: #0f1214;
+  --surface: #14181a;
+  --surface-2: #1c2226;
+  --border: #38424a;
+  --border-soft: #242b30;
 
-  --text: #eef2ff;
-  --text-muted: #93a2c3;
-  --text-faint: #5d6b8c;
+  --text: #eaeeee;
+  --text-muted: #97a3aa;
+  --text-faint: #59646b;
 
-  --accent: #38bdf8;
-  --accent-strong: #0ea5e9;
-  --accent-soft: rgba(56, 189, 248, 0.15);
+  /* シグナルオレンジ (アクセント) */
+  --accent: #ff8a00;
+  --accent-strong: #e67300;
+  --accent-soft: rgba(255, 138, 0, 0.14);
 
-  --red: #f87171;
-  --red-strong: #ef4444;
-  --red-soft: rgba(239, 68, 68, 0.16);
+  --red: #ff5449;
+  --red-strong: #e03e33;
+  --red-soft: rgba(224, 62, 51, 0.16);
 
-  --yellow: #fbbf24;
-  --yellow-strong: #f59e0b;
-  --yellow-soft: rgba(245, 158, 11, 0.16);
+  --yellow: #ffc21a;
+  --yellow-strong: #f0a800;
+  --yellow-soft: rgba(240, 168, 0, 0.15);
 
-  --green: #4ade80;
-  --green-strong: #22c55e;
-  --green-soft: rgba(34, 197, 94, 0.16);
+  --green: #57d06f;
+  --green-strong: #2fae4e;
+  --green-soft: rgba(47, 174, 78, 0.16);
 
-  --danger: #f87171;
-  --danger-strong: #ef4444;
+  --danger: #ff5449;
+  --danger-strong: #e03e33;
 
-  --purple: #c084fc;
-  --purple-soft: rgba(192, 132, 252, 0.16);
+  --purple: #b48cff;
+  --purple-soft: rgba(180, 140, 255, 0.15);
 
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --radius-pill: 999px;
+  /* シャープなミリタリー調: 角丸はほぼ使わない */
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 3px;
+  --radius-pill: 2px;
 
-  --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.35);
+  /* ボタン等の面取り量 */
+  --chamfer: 10px;
+
+  --shadow-card: 0 10px 28px rgba(0, 0, 0, 0.5);
   --shadow-glow: 0 0 0 1px var(--border-soft);
 
-  --font-ui: 'Hiragino Sans', 'Yu Gothic UI', 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', 'Consolas', 'Courier New', monospace;
+  /* Bahnschrift = Windows標準のDIN系コンデンスド書体 (BF系HUDの雰囲気) */
+  --font-ui: 'Bahnschrift', 'Segoe UI', 'Yu Gothic UI', system-ui, sans-serif;
+  --font-display: 'Bahnschrift', 'Segoe UI', sans-serif;
+  --font-mono: 'Consolas', 'SF Mono', 'Courier New', monospace;
+
+  /* 斜線ハッチ (警告・アクセント帯用) */
+  --hatch-accent: repeating-linear-gradient(
+    -45deg,
+    var(--accent) 0 8px,
+    transparent 8px 16px
+  );
 }
 
 * {
@@ -69,16 +84,33 @@ body {
   line-height: 1.5;
 }
 
-/* ふわっとした背景の質感（ビネット＋グリッド） */
+/* 背景: 微細グリッド + 上部オレンジのアンビエント */
 body::before {
   content: '';
   position: fixed;
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(circle at 15% -10%, rgba(56, 189, 248, 0.12), transparent 45%),
-    radial-gradient(circle at 100% 10%, rgba(192, 132, 252, 0.08), transparent 40%),
+    radial-gradient(ellipse at 50% -20%, rgba(255, 138, 0, 0.07), transparent 55%),
+    linear-gradient(rgba(255, 255, 255, 0.016) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.016) 1px, transparent 1px),
     var(--bg);
+  background-size: auto, 48px 48px, 48px 48px, auto;
+}
+
+/* スキャンライン (HUD質感) */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9990;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.10) 0 1px,
+    transparent 1px 3px
+  );
+  opacity: 0.3;
 }
 
 ::selection {
@@ -95,46 +127,54 @@ button {
   display: none !important;
 }
 
-/* ---------- 共通: ピル / バッジ ---------- */
+/* ---------- 共通: ピル / ステータスタグ ---------- */
 .pill {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
+  gap: 8px;
+  padding: 5px 12px;
   border-radius: var(--radius-pill);
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   border: 1px solid var(--border);
   background: var(--surface);
   color: var(--text-muted);
   white-space: nowrap;
 }
 
+/* ステータスLED (角型) */
 .pill::before {
   content: '';
   width: 7px;
   height: 7px;
-  border-radius: 50%;
   background: currentColor;
-  opacity: 0.9;
+  opacity: 0.95;
 }
 
-.pill.is-connected { color: var(--green); border-color: rgba(74, 222, 128, 0.35); background: var(--green-soft); }
-.pill.is-connecting { color: var(--yellow); border-color: rgba(251, 191, 36, 0.35); background: var(--yellow-soft); }
-.pill.is-disconnected { color: var(--red); border-color: rgba(248, 113, 113, 0.35); background: var(--red-soft); }
-.pill.is-phase { color: var(--accent); border-color: rgba(56, 189, 248, 0.35); background: var(--accent-soft); }
+.pill.is-connected { color: var(--green); border-color: rgba(47, 174, 78, 0.45); background: var(--green-soft); }
+.pill.is-connecting { color: var(--yellow); border-color: rgba(240, 168, 0, 0.45); background: var(--yellow-soft); }
+.pill.is-disconnected { color: var(--red); border-color: rgba(224, 62, 51, 0.45); background: var(--red-soft); }
+.pill.is-phase { color: var(--accent); border-color: rgba(255, 138, 0, 0.45); background: var(--accent-soft); }
 
-/* ---------- 共通: ボタン ---------- */
+/* ---------- 共通: ボタン (面取り角) ---------- */
 .btn {
   appearance: none;
-  border: 1px solid transparent;
-  border-radius: var(--radius-md);
-  padding: 14px 22px;
-  font-size: 1rem;
+  border: none;
+  border-radius: 0;
+  clip-path: polygon(
+    var(--chamfer) 0, 100% 0,
+    100% calc(100% - var(--chamfer)), calc(100% - var(--chamfer)) 100%,
+    0 100%, 0 var(--chamfer)
+  );
+  padding: 14px 24px;
+  font-size: 0.95rem;
   font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, background 0.15s ease;
-  letter-spacing: 0.01em;
+  transition: transform 0.12s ease, filter 0.12s ease, opacity 0.12s ease, box-shadow 0.12s ease;
 }
 
 .btn:active:not(:disabled) {
@@ -142,38 +182,36 @@ button {
 }
 
 .btn:disabled {
-  opacity: 0.4;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, var(--accent-strong), #6366f1);
-  color: #fff;
-  box-shadow: 0 8px 20px rgba(14, 165, 233, 0.25);
+  background: linear-gradient(180deg, var(--accent), var(--accent-strong));
+  color: #180d00;
 }
-.btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+.btn-primary:hover:not(:disabled) { filter: brightness(1.1); }
 
 .btn-secondary {
   background: var(--surface-2);
   color: var(--text);
-  border-color: var(--border);
+  box-shadow: inset 0 0 0 1px var(--border);
 }
-.btn-secondary:hover:not(:disabled) { background: var(--surface); border-color: var(--accent); }
+.btn-secondary:hover:not(:disabled) { box-shadow: inset 0 0 0 1px var(--accent); color: var(--accent); }
 
 .btn-danger {
-  background: linear-gradient(135deg, var(--danger-strong), #b91c1c);
-  color: #fff;
-  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.25);
+  background: linear-gradient(180deg, var(--red), var(--red-strong));
+  color: #1c0503;
 }
-.btn-danger:hover:not(:disabled) { filter: brightness(1.08); }
+.btn-danger:hover:not(:disabled) { filter: brightness(1.1); }
 
 .btn-ghost {
   background: transparent;
   color: var(--text-muted);
-  border-color: var(--border);
+  box-shadow: inset 0 0 0 1px var(--border);
   font-weight: 600;
 }
-.btn-ghost:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
+.btn-ghost:hover:not(:disabled) { color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
 
 .btn-block { width: 100%; }
 
@@ -185,10 +223,57 @@ button {
   box-shadow: var(--shadow-card);
 }
 
+/* コーナーブラケット (HUD風の枠飾り)
+   position:relative な要素に .bracketed を付けると
+   左上・右下にオレンジのカギ括弧が付く */
+.bracketed {
+  position: relative;
+}
+
+.bracketed::before,
+.bracketed::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  pointer-events: none;
+}
+
+.bracketed::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid var(--accent);
+  border-left: 2px solid var(--accent);
+}
+
+.bracketed::after {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid var(--accent);
+  border-right: 2px solid var(--accent);
+}
+
+/* ---------- 共通: ブランドロゴ ---------- */
+.brand-mark {
+  display: inline-block;
+  width: 10px;
+  height: 20px;
+  background: var(--accent);
+  transform: skewX(-12deg);
+  flex-shrink: 0;
+}
+
+.brand-sub {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--text-faint);
+}
+
 /* ---------- 共通: スクロールバー ---------- */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 0; }
 
 /* ---------- 共通: アニメーション ---------- */
 @keyframes pulse-soft {
@@ -208,6 +293,14 @@ button {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes flicker-in {
+  0% { opacity: 0; }
+  30% { opacity: 1; }
+  45% { opacity: 0.4; }
+  60% { opacity: 1; }
+  100% { opacity: 1; }
 }
 
 .fade-in { animation: fade-in 0.25s ease both; }

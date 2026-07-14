@@ -1,4 +1,4 @@
-/* サバゲー進行システム - 管理画面スタイル */
+/* サバゲー進行システム - 管理画面スタイル (ミリタリーHUD調) */
 @import url('/assets/css/theme.css');
 
 .app-shell {
@@ -18,18 +18,23 @@
     justify-content: space-between;
     gap: 12px;
     flex-wrap: wrap;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-soft);
 }
 
 .brand {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-weight: 800;
-    font-size: 1.15rem;
-    letter-spacing: 0.01em;
+    gap: 10px;
 }
 
-.brand-mark { font-size: 1.3rem; }
+.brand-text {
+    font-family: var(--font-display);
+    font-weight: 800;
+    font-size: 1.3rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+}
 
 .status-cluster {
     display: flex;
@@ -44,7 +49,6 @@
     justify-content: space-between;
     background: var(--surface);
     border: 1px solid var(--border-soft);
-    border-radius: var(--radius-lg);
     padding: 14px 10px;
     position: relative;
 }
@@ -62,9 +66,9 @@
 .step:not(:last-child)::after {
     content: '';
     position: absolute;
-    top: 15px;
-    left: calc(50% + 16px);
-    right: calc(-50% + 16px);
+    top: 14px;
+    left: calc(50% + 18px);
+    right: calc(-50% + 18px);
     height: 2px;
     background: var(--border);
     z-index: 0;
@@ -73,17 +77,18 @@
 .step.completed:not(:last-child)::after { background: var(--green-strong); }
 .step.active:not(:last-child)::after { background: var(--accent); }
 
+/* 角型ステップマーカー */
 .step-dot {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
+    width: 28px;
+    height: 28px;
     background: var(--surface-2);
-    border: 1px solid var(--border);
+    box-shadow: inset 0 0 0 1px var(--border);
     color: var(--text-faint);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 700;
+    font-family: var(--font-display);
+    font-weight: 800;
     font-size: 0.85rem;
     z-index: 1;
     transition: all 0.2s ease;
@@ -91,20 +96,20 @@
 
 .step.active .step-dot {
     background: var(--accent);
-    border-color: var(--accent);
-    color: #04202e;
-    box-shadow: 0 0 0 4px var(--accent-soft);
+    box-shadow: 0 0 0 3px var(--accent-soft), 0 0 14px rgba(255, 138, 0, 0.4);
+    color: #180d00;
 }
 
 .step.completed .step-dot {
     background: var(--green-strong);
-    border-color: var(--green-strong);
-    color: #062b14;
+    box-shadow: none;
+    color: #05230e;
 }
 
 .step-text {
     font-size: 0.68rem;
     font-weight: 700;
+    letter-spacing: 0.08em;
     color: var(--text-faint);
     text-align: center;
 }
@@ -114,42 +119,95 @@
 
 /* ---------- タイマー ---------- */
 .timer-card {
-    padding: 20px;
+    padding: 24px 20px 20px;
     text-align: center;
+    position: relative;
+    border-radius: 0;
+}
+
+/* 上部ハッチ帯 */
+.timer-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: var(--hatch-accent);
+    opacity: 0.55;
+}
+
+/* 右下ブラケット */
+.timer-card::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 14px;
+    height: 14px;
+    border-bottom: 2px solid var(--accent);
+    border-right: 2px solid var(--accent);
+    pointer-events: none;
 }
 
 .timer-value {
-    font-family: var(--font-mono);
-    font-size: 3rem;
+    font-family: var(--font-display);
+    font-size: 3.4rem;
     font-weight: 800;
     color: var(--text);
-    letter-spacing: 0.02em;
+    letter-spacing: 0.04em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
 }
 
 .timer-value.warning { color: var(--yellow); }
-.timer-value.danger { color: var(--red); animation: pulse-fast 0.6s infinite; }
+.timer-value.danger { color: var(--red); animation: pulse-fast 0.6s infinite; text-shadow: 0 0 18px rgba(224, 62, 51, 0.6); }
 
 .timer-label {
     margin-top: 4px;
-    font-size: 0.85rem;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
     color: var(--text-muted);
-    font-weight: 600;
 }
 
 /* ---------- フェーズパネル ---------- */
 .content { display: flex; flex-direction: column; gap: 14px; }
 
-.phase-panel { padding: 22px; }
+.phase-panel {
+    padding: 22px;
+    border-radius: 0;
+    position: relative;
+}
+
+/* 左上ブラケット */
+.phase-panel::before {
+    content: '';
+    position: absolute;
+    top: -1px;
+    left: -1px;
+    width: 14px;
+    height: 14px;
+    border-top: 2px solid var(--accent);
+    border-left: 2px solid var(--accent);
+    pointer-events: none;
+}
 
 .panel-title {
-    font-size: 1.2rem;
+    font-family: var(--font-display);
+    font-size: 1.15rem;
     font-weight: 800;
+    letter-spacing: 0.1em;
     margin-bottom: 18px;
+    padding-left: 12px;
+    border-left: 4px solid var(--accent);
+    line-height: 1.2;
 }
 
 .section-title {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
     font-weight: 700;
+    letter-spacing: 0.12em;
     color: var(--text-muted);
     margin: 18px 0 10px;
 }
@@ -170,39 +228,42 @@
 .field { display: flex; flex-direction: column; gap: 6px; }
 
 .field label {
-    font-size: 0.85rem;
+    font-size: 0.78rem;
     font-weight: 700;
+    letter-spacing: 0.1em;
     color: var(--text-muted);
 }
 
 .field label.team-label.red { color: var(--red); }
 .field label.team-label.yellow { color: var(--yellow); }
 
-.req { color: var(--red); }
+.req { color: var(--accent); }
 
 select {
     appearance: none;
-    background: var(--bg-elevated) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2393a2c3' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center;
+    background: var(--bg-elevated) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2397a3aa' stroke-width='1.6' fill='none' stroke-linecap='square'/%3E%3C/svg%3E") no-repeat right 14px center;
     border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
+    border-radius: 0;
     color: var(--text);
     padding: 12px 34px 12px 12px;
+    font-family: var(--font-ui);
     font-size: 0.95rem;
     font-weight: 600;
     cursor: pointer;
 }
 
-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
 
-.team-select.red { border-color: rgba(248, 113, 113, 0.4); }
-.team-select.yellow { border-color: rgba(251, 191, 36, 0.4); }
+.team-select.red { border-left: 3px solid var(--red-strong); }
+.team-select.yellow { border-left: 3px solid var(--yellow-strong); }
 
 .link-toggle {
     background: none;
     border: none;
     color: var(--accent);
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.06em;
     cursor: pointer;
     padding: 8px 0;
 }
@@ -216,7 +277,7 @@ select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px
     align-items: center;
     gap: 8px;
     padding: 9px 16px;
-    border-radius: var(--radius-pill);
+    border-radius: 0;
     border: 1px solid var(--border);
     background: var(--bg-elevated);
     color: var(--text-muted);
@@ -246,8 +307,8 @@ select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px
 .swap-button {
     width: 42px;
     height: 42px;
-    border-radius: 50%;
     border: 1px solid var(--border);
+    border-radius: 0;
     background: var(--surface-2);
     color: var(--text);
     font-size: 1.1rem;
@@ -263,7 +324,8 @@ select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px
 .settings-summary {
     background: var(--bg-elevated);
     border: 1px solid var(--border-soft);
-    border-radius: var(--radius-md);
+    border-left: 3px solid var(--border);
+    border-radius: 0;
     padding: 16px;
     display: grid;
     gap: 8px;
@@ -277,7 +339,7 @@ select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px
     gap: 12px;
 }
 
-.settings-summary .row span:first-child { color: var(--text-muted); }
+.settings-summary .row span:first-child { color: var(--text-muted); font-size: 0.85rem; letter-spacing: 0.04em; }
 .settings-summary .row span:last-child { font-weight: 700; }
 
 /* ---------- 準備完了トグル ---------- */
@@ -296,25 +358,32 @@ select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px
     align-items: center;
     gap: 4px;
     padding: 18px 10px;
-    border-radius: var(--radius-md);
-    border: 2px solid var(--border);
+    border-radius: 0;
+    border: 1px solid var(--border);
     background: var(--bg-elevated);
     cursor: pointer;
     transition: all 0.2s ease;
+    position: relative;
 }
 
-.ready-toggle.red .ready-toggle-face { border-color: rgba(248, 113, 113, 0.3); }
-.ready-toggle.yellow .ready-toggle-face { border-color: rgba(251, 191, 36, 0.3); }
+.ready-toggle.red .ready-toggle-face { border-top: 3px solid var(--red-strong); }
+.ready-toggle.yellow .ready-toggle-face { border-top: 3px solid var(--yellow-strong); }
 
-.ready-icon { font-size: 1.4rem; opacity: 0.5; }
-.ready-team-name { font-weight: 800; }
+.ready-icon { font-size: 1.4rem; opacity: 0.45; }
+.ready-team-name {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: 0.08em;
+}
 .ready-toggle.red .ready-team-name { color: var(--red); }
 .ready-toggle.yellow .ready-team-name { color: var(--yellow); }
-.ready-state { font-size: 0.78rem; color: var(--text-faint); font-weight: 600; }
+.ready-state { font-size: 0.75rem; letter-spacing: 0.08em; color: var(--text-faint); font-weight: 600; }
 
 .ready-toggle input:checked + .ready-toggle-face {
     border-color: var(--green-strong);
-    background: var(--green-soft);
+    background:
+        repeating-linear-gradient(-45deg, rgba(47, 174, 78, 0.08) 0 8px, transparent 8px 16px),
+        var(--green-soft);
 }
 .ready-toggle input:checked + .ready-toggle-face .ready-icon { opacity: 1; }
 .ready-toggle input:checked + .ready-toggle-face .ready-state { color: var(--green); }
@@ -327,7 +396,7 @@ select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px
     padding: 14px 16px;
     background: var(--bg-elevated);
     border: 1px solid var(--border-soft);
-    border-radius: var(--radius-md);
+    border-radius: 0;
     cursor: pointer;
     margin-bottom: 22px;
 }
@@ -336,8 +405,7 @@ select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px
 
 .switch {
     width: 42px;
-    height: 24px;
-    border-radius: var(--radius-pill);
+    height: 22px;
     background: var(--surface-2);
     border: 1px solid var(--border);
     position: relative;
@@ -350,15 +418,14 @@ select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px
     position: absolute;
     top: 2px;
     left: 2px;
-    width: 18px;
-    height: 18px;
-    border-radius: 50%;
+    width: 16px;
+    height: 16px;
     background: var(--text-faint);
     transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .switch-row input:checked + .switch { background: var(--accent-soft); border-color: var(--accent); }
-.switch-row input:checked + .switch::after { transform: translateX(18px); background: var(--accent); }
+.switch-row input:checked + .switch::after { transform: translateX(20px); background: var(--accent); }
 
 .switch-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
 
@@ -375,13 +442,27 @@ select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px
 .game-stats, .result-display {
     background: var(--bg-elevated);
     border: 1px solid var(--border-soft);
-    border-radius: var(--radius-md);
+    border-left: 3px solid var(--accent);
+    border-radius: 0;
     padding: 16px;
     margin-bottom: 20px;
 }
 
-.result-display h3 { font-size: 1rem; margin-bottom: 10px; }
-.result-display .winner-line { font-size: 1.4rem; font-weight: 800; margin: 10px 0; }
+.game-stats .row, .result-display .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 6px;
+}
+
+.result-display h3 { font-size: 0.95rem; letter-spacing: 0.1em; margin-bottom: 10px; color: var(--text-muted); }
+.result-display .winner-line {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    margin: 10px 0;
+}
 
 /* ---------- ユーティリティ・ドック ---------- */
 .utility-dock {
@@ -402,6 +483,7 @@ select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px
     max-width: 720px;
     width: 100%;
     margin: 0 auto;
+    border-radius: 0;
 }
 
 .util-card summary {
@@ -411,7 +493,8 @@ select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px
     align-items: center;
     gap: 8px;
     font-weight: 700;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
     color: var(--text-muted);
 }
 
@@ -426,7 +509,7 @@ select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px
     gap: 6px;
     margin: 10px 0;
     font-family: var(--font-mono);
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
 }
 
@@ -436,12 +519,12 @@ select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px
     gap: 8px;
 }
 
-.debug-buttons .btn { padding: 8px 12px; font-size: 0.78rem; }
+.debug-buttons .btn { padding: 8px 12px; font-size: 0.72rem; --chamfer: 6px; }
 
 /* ---------- レスポンシブ ---------- */
 @media (min-width: 760px) {
     .app-shell { padding: 28px 24px 120px; }
-    .timer-value { font-size: 3.6rem; }
+    .timer-value { font-size: 4rem; }
 }
 
 @media (max-width: 420px) {

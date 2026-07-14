@@ -662,16 +662,18 @@ style.textContent = `
         top: 16px;
         left: 50%;
         transform: translateX(-50%);
-        background: var(--surface-2, #1f2c4a);
-        color: var(--text, #eef2ff);
-        border: 1px solid var(--accent, #38bdf8);
+        background: var(--surface-2, #1c2226);
+        color: var(--text, #eaeeee);
+        border: 1px solid var(--accent, #ff8a00);
+        border-left: 4px solid var(--accent, #ff8a00);
         padding: 10px 18px;
-        border-radius: 999px;
+        border-radius: 2px;
         font-weight: 700;
         font-size: 0.85rem;
+        letter-spacing: 0.06em;
         z-index: 1000;
         animation: fade-in 0.2s ease;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.45);
     }
 `;
 document.head.appendChild(style);
