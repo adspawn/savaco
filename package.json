@@ -1,0 +1,31 @@
+{
+  "name": "sabage-system",
+  "version": "2.0.0",
+  "description": "サバゲー進行システム - サバイバルゲームの進行を自動化・見える化するシステム",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "nodemon server/index.js"
+  },
+  "keywords": [
+    "sabage",
+    "survival-game",
+    "timer",
+    "lora",
+    "meshtastic",
+    "esp32"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@meshtastic/core": "^2.6.7",
+    "@meshtastic/transport-node-serial": "^0.0.2",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "serialport": "^12.0.0",
+    "socket.io": "^4.7.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}

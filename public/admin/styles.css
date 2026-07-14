@@ -1,0 +1,451 @@
+/* サバゲー進行システム - 管理画面スタイル */
+@import url('/assets/css/theme.css');
+
+.app-shell {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 16px 16px 100px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 100vh;
+}
+
+/* ---------- トップバー ---------- */
+.topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: 0.01em;
+}
+
+.brand-mark { font-size: 1.3rem; }
+
+.status-cluster {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* ---------- ステッパー ---------- */
+.stepper {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 14px 10px;
+    position: relative;
+}
+
+.step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+    position: relative;
+    min-width: 0;
+}
+
+.step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: calc(50% + 16px);
+    right: calc(-50% + 16px);
+    height: 2px;
+    background: var(--border);
+    z-index: 0;
+}
+
+.step.completed:not(:last-child)::after { background: var(--green-strong); }
+.step.active:not(:last-child)::after { background: var(--accent); }
+
+.step-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-faint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    z-index: 1;
+    transition: all 0.2s ease;
+}
+
+.step.active .step-dot {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #04202e;
+    box-shadow: 0 0 0 4px var(--accent-soft);
+}
+
+.step.completed .step-dot {
+    background: var(--green-strong);
+    border-color: var(--green-strong);
+    color: #062b14;
+}
+
+.step-text {
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--text-faint);
+    text-align: center;
+}
+
+.step.active .step-text { color: var(--accent); }
+.step.completed .step-text { color: var(--green); }
+
+/* ---------- タイマー ---------- */
+.timer-card {
+    padding: 20px;
+    text-align: center;
+}
+
+.timer-value {
+    font-family: var(--font-mono);
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: 0.02em;
+}
+
+.timer-value.warning { color: var(--yellow); }
+.timer-value.danger { color: var(--red); animation: pulse-fast 0.6s infinite; }
+
+.timer-label {
+    margin-top: 4px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+/* ---------- フェーズパネル ---------- */
+.content { display: flex; flex-direction: column; gap: 14px; }
+
+.phase-panel { padding: 22px; }
+
+.panel-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 18px;
+}
+
+.section-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    margin: 18px 0 10px;
+}
+
+.divider {
+    height: 1px;
+    background: var(--border-soft);
+    margin: 20px 0;
+}
+
+/* ---------- フォーム部品 ---------- */
+.settings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+}
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+
+.field label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+.field label.team-label.red { color: var(--red); }
+.field label.team-label.yellow { color: var(--yellow); }
+
+.req { color: var(--red); }
+
+select {
+    appearance: none;
+    background: var(--bg-elevated) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2393a2c3' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat right 14px center;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--text);
+    padding: 12px 34px 12px 12px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+
+.team-select.red { border-color: rgba(248, 113, 113, 0.4); }
+.team-select.yellow { border-color: rgba(251, 191, 36, 0.4); }
+
+.link-toggle {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 8px 0;
+}
+
+.options-section { margin-top: 6px; }
+
+.chip-group { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 16px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--border);
+    background: var(--bg-elevated);
+    color: var(--text-muted);
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.chip input { display: none; }
+
+.chip:has(input:checked),
+.chip.is-checked {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+/* ---------- チーム位置 ---------- */
+.team-position-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: end;
+}
+
+.swap-button {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--surface-2);
+    color: var(--text);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.swap-button:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ---------- 設定サマリー ---------- */
+.settings-summary {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    display: grid;
+    gap: 8px;
+    font-size: 0.92rem;
+    margin-bottom: 20px;
+}
+
+.settings-summary .row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.settings-summary .row span:first-child { color: var(--text-muted); }
+.settings-summary .row span:last-child { font-weight: 700; }
+
+/* ---------- 準備完了トグル ---------- */
+.ready-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.ready-toggle input { display: none; }
+
+.ready-toggle-face {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 18px 10px;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+    background: var(--bg-elevated);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.ready-toggle.red .ready-toggle-face { border-color: rgba(248, 113, 113, 0.3); }
+.ready-toggle.yellow .ready-toggle-face { border-color: rgba(251, 191, 36, 0.3); }
+
+.ready-icon { font-size: 1.4rem; opacity: 0.5; }
+.ready-team-name { font-weight: 800; }
+.ready-toggle.red .ready-team-name { color: var(--red); }
+.ready-toggle.yellow .ready-team-name { color: var(--yellow); }
+.ready-state { font-size: 0.78rem; color: var(--text-faint); font-weight: 600; }
+
+.ready-toggle input:checked + .ready-toggle-face {
+    border-color: var(--green-strong);
+    background: var(--green-soft);
+}
+.ready-toggle input:checked + .ready-toggle-face .ready-icon { opacity: 1; }
+.ready-toggle input:checked + .ready-toggle-face .ready-state { color: var(--green); }
+
+/* ---------- 自動進行スイッチ ---------- */
+.switch-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    margin-bottom: 22px;
+}
+
+.switch-row input { display: none; }
+
+.switch {
+    width: 42px;
+    height: 24px;
+    border-radius: var(--radius-pill);
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    position: relative;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+}
+
+.switch::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--text-faint);
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.switch-row input:checked + .switch { background: var(--accent-soft); border-color: var(--accent); }
+.switch-row input:checked + .switch::after { transform: translateX(18px); background: var(--accent); }
+
+.switch-label { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
+
+/* ---------- ボタン列 ---------- */
+.action-row {
+    display: flex;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.action-row .btn-secondary:not(.btn-block) { flex: 0 0 auto; }
+
+/* ---------- ゲーム統計・結果 ---------- */
+.game-stats, .result-display {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: 16px;
+    margin-bottom: 20px;
+}
+
+.result-display h3 { font-size: 1rem; margin-bottom: 10px; }
+.result-display .winner-line { font-size: 1.4rem; font-weight: 800; margin: 10px 0; }
+
+/* ---------- ユーティリティ・ドック ---------- */
+.utility-dock {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+    background: linear-gradient(to top, var(--bg) 60%, transparent);
+    z-index: 20;
+}
+
+.util-card {
+    padding: 10px 14px;
+    max-width: 720px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.util-card summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.util-card summary::-webkit-details-marker { display: none; }
+
+.audio-indicator { font-size: 1.1rem; }
+.audio-indicator.playing { animation: pulse-fast 1s infinite; }
+
+.debug-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 6px;
+    margin: 10px 0;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+.debug-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.debug-buttons .btn { padding: 8px 12px; font-size: 0.78rem; }
+
+/* ---------- レスポンシブ ---------- */
+@media (min-width: 760px) {
+    .app-shell { padding: 28px 24px 120px; }
+    .timer-value { font-size: 3.6rem; }
+}
+
+@media (max-width: 420px) {
+    .ready-grid { grid-template-columns: 1fr; }
+    .team-position-grid { grid-template-columns: 1fr; }
+    .swap-button { justify-self: center; }
+}

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>サバゲー進行システム - 表示画面</title>
+    <link rel="stylesheet" href="/assets/css/theme.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="stage" id="stage" data-phase="waiting">
+
+        <header class="stage-top">
+            <div class="stage-brand">🎯 サバゲー進行システム</div>
+            <div class="pill is-connecting" id="connectionStatus">接続中...</div>
+        </header>
+
+        <nav class="progress-rail" aria-label="ゲーム進行状況">
+            <div class="rail-step" id="step-waiting"><span class="rail-dot">1</span><span class="rail-name">待機</span></div>
+            <div class="rail-step" id="step-interval"><span class="rail-dot">2</span><span class="rail-name">休憩</span></div>
+            <div class="rail-step" id="step-pre-game"><span class="rail-dot">3</span><span class="rail-name">開始前</span></div>
+            <div class="rail-step" id="step-in-game"><span class="rail-dot">4</span><span class="rail-name">ゲーム中</span></div>
+            <div class="rail-step" id="step-game-over"><span class="rail-dot">5</span><span class="rail-name">終了</span></div>
+        </nav>
+
+        <main class="stage-main">
+
+            <div class="phase-banner">
+                <div class="phase-name" id="currentPhase">待機中</div>
+                <div class="phase-desc" id="phaseDescription">ゲームの設定を行っています</div>
+            </div>
+
+            <div class="timer-hero">
+                <div class="timer-value" id="timerValue">00:00</div>
+                <div class="timer-label" id="timerLabel">タイマー停止中</div>
+            </div>
+
+            <!-- チーム対戦パネル（開始前フェーズ） -->
+            <div class="vs-panel" id="teamStatus" hidden>
+                <div class="team-block red" id="redTeamCard">
+                    <div class="team-name">RED</div>
+                    <div class="team-position" id="redTeamPosition">位置: -</div>
+                    <div class="ready-status" id="redReadyStatus">
+                        <span class="ready-indicator" id="redReadyIndicator">⏳</span>
+                        <span class="ready-text">準備中...</span>
+                    </div>
+                </div>
+                <div class="vs-divider">VS</div>
+                <div class="team-block yellow" id="yellowTeamCard">
+                    <div class="team-name">YELLOW</div>
+                    <div class="team-position" id="yellowTeamPosition">位置: -</div>
+                    <div class="ready-status" id="yellowReadyStatus">
+                        <span class="ready-indicator" id="yellowReadyIndicator">⏳</span>
+                        <span class="ready-text">準備中...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ゲーム情報ストリップ -->
+            <div class="info-strip" id="gameInfo" hidden>
+                <div class="info-chip">
+                    <div class="info-label">ルール</div>
+                    <div class="info-value" id="gameRule">-</div>
+                </div>
+                <div class="info-chip">
+                    <div class="info-label">制限時間</div>
+                    <div class="info-value" id="gameTime">-</div>
+                </div>
+                <div class="info-chip">
+                    <div class="info-label">赤チーム位置</div>
+                    <div class="info-value red" id="redPosition">-</div>
+                </div>
+                <div class="info-chip">
+                    <div class="info-label">黄チーム位置</div>
+                    <div class="info-value yellow" id="yellowPosition">-</div>
+                </div>
+            </div>
+
+            <!-- ゲーム統計（無限復活戦） -->
+            <div class="stats-panel" id="gameStats" hidden>
+                <div class="stats-title">復活回数</div>
+                <div class="stats-grid">
+                    <div class="stat-block red">
+                        <div class="stat-label">赤チーム</div>
+                        <div class="stat-value" id="redButtonCount">0</div>
+                    </div>
+                    <div class="stat-block yellow">
+                        <div class="stat-label">黄チーム</div>
+                        <div class="stat-value" id="yellowButtonCount">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ゲーム結果 -->
+            <div class="result-panel" id="gameResult" hidden>
+                <div class="result-title">🏆 ゲーム結果</div>
+                <div class="winner-text" id="winnerText">結果発表中...</div>
+                <div class="result-details" id="resultDetails"></div>
+            </div>
+
+        </main>
+
+        <div class="audio-indicator" id="audioIndicator">
+            <span class="audio-icon" id="audioIcon">🔇</span>
+            <span class="audio-status" id="audioStatus">音声待機中</span>
+        </div>
+
+        <div class="error-overlay" id="errorOverlay" hidden>
+            <div class="error-content">
+                <div class="error-icon">⚠️</div>
+                <h2>接続エラー</h2>
+                <p>サーバーとの接続が切断されました。自動的に再接続を試行しています...</p>
+                <div class="spinner"></div>
+            </div>
+        </div>
+
+        <div class="confetti-layer" id="confettiLayer"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="display.js"></script>
+</body>
+</html>

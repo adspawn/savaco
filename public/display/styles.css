@@ -1,0 +1,470 @@
+/* サバゲー進行システム - 表示画面スタイル（大画面・遠目視認性重視） */
+@import url('/assets/css/theme.css');
+
+.stage {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    padding: 28px 40px;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.6s ease;
+}
+
+/* フェーズごとのアンビエント背景 */
+.stage::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    transition: opacity 0.8s ease;
+    background: radial-gradient(circle at 50% -10%, rgba(56, 189, 248, 0.14), transparent 55%), var(--bg);
+}
+
+.stage[data-phase="interval"]::before {
+    background: radial-gradient(circle at 50% -10%, rgba(56, 189, 248, 0.22), transparent 55%), var(--bg);
+}
+
+.stage[data-phase="pre-game"]::before {
+    background: radial-gradient(circle at 20% -10%, rgba(248, 113, 113, 0.16), transparent 50%),
+                radial-gradient(circle at 80% -10%, rgba(251, 191, 36, 0.16), transparent 50%), var(--bg);
+}
+
+.stage[data-phase="in-game"]::before {
+    background: radial-gradient(circle at 50% -10%, rgba(74, 222, 128, 0.18), transparent 55%), var(--bg);
+}
+
+.stage[data-phase="game-over"]::before {
+    background: radial-gradient(circle at 50% -10%, rgba(192, 132, 252, 0.2), transparent 55%), var(--bg);
+}
+
+/* ---------- トップバー ---------- */
+.stage-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.stage-brand {
+    font-size: 1.4rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+}
+
+/* ---------- 進行レール ---------- */
+.progress-rail {
+    display: flex;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 16px 24px;
+    margin-bottom: 24px;
+}
+
+.rail-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    justify-content: center;
+    position: relative;
+}
+
+.rail-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: -50%;
+    width: 100%;
+    height: 2px;
+    background: var(--border);
+    transform: translateY(-50%);
+    z-index: 0;
+}
+
+.rail-step.completed:not(:last-child)::after { background: var(--green-strong); }
+.rail-step.active:not(:last-child)::after { background: var(--accent); }
+
+.rail-dot {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    color: var(--text-faint);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    z-index: 1;
+    position: relative;
+    flex-shrink: 0;
+}
+
+.rail-step.active .rail-dot {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #04202e;
+    animation: pulse-soft 2s infinite;
+}
+
+.rail-step.completed .rail-dot {
+    background: var(--green-strong);
+    border-color: var(--green-strong);
+    color: #062b14;
+}
+
+.rail-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-faint);
+    z-index: 1;
+}
+
+.rail-step.active .rail-name { color: var(--accent); }
+.rail-step.completed .rail-name { color: var(--green); }
+
+/* ---------- メインステージ ---------- */
+.stage-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 26px;
+    justify-content: center;
+}
+
+.phase-banner {
+    text-align: center;
+}
+
+.phase-name {
+    font-size: 3.2rem;
+    font-weight: 900;
+    letter-spacing: 0.01em;
+    transition: color 0.4s ease;
+}
+
+.phase-name.waiting { color: var(--text-faint); }
+.phase-name.interval { color: var(--accent); }
+.phase-name.pre-game { color: var(--yellow); }
+.phase-name.in-game { color: var(--green); }
+.phase-name.game-over { color: var(--purple); }
+
+.phase-desc {
+    margin-top: 6px;
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* ---------- タイマー ---------- */
+.timer-hero {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 40px 90px;
+    text-align: center;
+    box-shadow: var(--shadow-card);
+}
+
+.timer-value {
+    font-family: var(--font-mono);
+    font-size: 8rem;
+    font-weight: 800;
+    line-height: 1;
+    color: var(--text);
+}
+
+.timer-value.warning { color: var(--yellow); animation: pulse-soft 1s infinite; }
+.timer-value.danger { color: var(--red); animation: pulse-fast 0.5s infinite; }
+
+.timer-label {
+    margin-top: 12px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text-muted);
+}
+
+/* ---------- VSパネル ---------- */
+.vs-panel {
+    display: flex;
+    align-items: center;
+    gap: 40px;
+    width: 100%;
+    max-width: 900px;
+}
+
+.team-block {
+    flex: 1;
+    padding: 30px;
+    border-radius: var(--radius-lg);
+    text-align: center;
+    border: 2px solid var(--border);
+    background: var(--surface);
+}
+
+.team-block.red { border-color: rgba(248, 113, 113, 0.4); background: linear-gradient(160deg, var(--red-soft), var(--surface) 70%); }
+.team-block.yellow { border-color: rgba(251, 191, 36, 0.4); background: linear-gradient(160deg, var(--yellow-soft), var(--surface) 70%); }
+
+.team-name {
+    font-size: 2rem;
+    font-weight: 900;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+.team-block.red .team-name { color: var(--red); }
+.team-block.yellow .team-name { color: var(--yellow); }
+
+.team-position {
+    font-size: 1.2rem;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    font-weight: 600;
+}
+
+.ready-status {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text-faint);
+}
+
+.ready-indicator { font-size: 1.6rem; }
+
+.ready-status.ready { color: var(--green); }
+.ready-status.ready .ready-indicator { animation: bounce 1s infinite; }
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+}
+
+.vs-divider {
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: var(--text-faint);
+    flex-shrink: 0;
+}
+
+/* ---------- 情報ストリップ ---------- */
+.info-strip {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.info-chip {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-md);
+    padding: 14px 26px;
+    text-align: center;
+    min-width: 140px;
+}
+
+.info-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.info-value {
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+
+.info-value.red { color: var(--red); }
+.info-value.yellow { color: var(--yellow); }
+
+/* ---------- 統計パネル ---------- */
+.stats-panel {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 24px 40px;
+    text-align: center;
+}
+
+.stats-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    color: var(--text-muted);
+}
+
+.stats-grid {
+    display: flex;
+    gap: 30px;
+}
+
+.stat-block {
+    flex: 1;
+    padding: 18px 30px;
+    border-radius: var(--radius-md);
+    border: 2px solid var(--border);
+}
+
+.stat-block.red { border-color: rgba(248, 113, 113, 0.4); background: var(--red-soft); }
+.stat-block.yellow { border-color: rgba(251, 191, 36, 0.4); background: var(--yellow-soft); }
+
+.stat-label { font-weight: 700; margin-bottom: 8px; }
+.stat-block.red .stat-label { color: var(--red); }
+.stat-block.yellow .stat-label { color: var(--yellow); }
+
+.stat-value {
+    font-family: var(--font-mono);
+    font-size: 3rem;
+    font-weight: 800;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+/* ---------- 結果パネル ---------- */
+.result-panel {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 44px 70px;
+    text-align: center;
+    box-shadow: var(--shadow-card);
+}
+
+.result-title {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 18px;
+    color: var(--text-muted);
+}
+
+.winner-text {
+    font-size: 3rem;
+    font-weight: 900;
+    margin-bottom: 14px;
+}
+
+.winner-text.red { color: var(--red); }
+.winner-text.yellow { color: var(--yellow); }
+.winner-text.draw { color: var(--text-faint); }
+
+.result-details {
+    font-size: 1.15rem;
+    color: var(--text-muted);
+    display: grid;
+    gap: 6px;
+}
+
+/* ---------- 音声インジケーター ---------- */
+.audio-indicator {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-pill);
+    padding: 10px 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    box-shadow: var(--shadow-card);
+}
+
+.audio-icon.playing { animation: pulse-fast 1s infinite; }
+
+/* ---------- エラーオーバーレイ ---------- */
+.error-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 7, 18, 0.88);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.error-content {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-lg);
+    padding: 50px;
+    text-align: center;
+    max-width: 420px;
+    box-shadow: var(--shadow-card);
+}
+
+.error-icon { font-size: 2.5rem; margin-bottom: 10px; }
+.error-content h2 { color: var(--red); margin-bottom: 12px; }
+.error-content p { color: var(--text-muted); line-height: 1.6; }
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border);
+    border-top: 4px solid var(--accent);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 20px auto 0;
+}
+
+/* ---------- 紙吹雪 ---------- */
+.confetti-layer {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 900;
+    overflow: hidden;
+}
+
+.confetti-piece {
+    position: absolute;
+    top: -10px;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    animation: confetti-fall linear forwards;
+}
+
+@keyframes confetti-fall {
+    0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(105vh) rotate(360deg); opacity: 0; }
+}
+
+/* ---------- LoRa通知 ---------- */
+.stage-toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--surface-2);
+    border: 1px solid var(--accent);
+    color: var(--text);
+    padding: 14px 28px;
+    border-radius: var(--radius-pill);
+    font-weight: 800;
+    font-size: 1.1rem;
+    z-index: 1000;
+    box-shadow: var(--shadow-card);
+    animation: fade-in 0.25s ease;
+}
+
+/* ---------- レスポンシブ（縦型/小画面 表示端末向け） ---------- */
+@media (max-width: 900px) {
+    .stage { padding: 18px 20px; }
+    .timer-value { font-size: 5rem; }
+    .timer-hero { padding: 28px 40px; }
+    .phase-name { font-size: 2.2rem; }
+    .vs-panel { flex-direction: column; gap: 16px; }
+    .vs-divider { display: none; }
+    .stats-grid { flex-direction: column; gap: 14px; }
+    .result-panel { padding: 30px; }
+}

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>サバゲー進行システム - 管理画面</title>
+    <link rel="stylesheet" href="/assets/css/theme.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-shell">
+
+        <!-- トップバー -->
+        <header class="topbar">
+            <div class="brand">
+                <span class="brand-mark">🎯</span>
+                <span class="brand-text">サバゲー進行システム</span>
+            </div>
+            <div class="status-cluster">
+                <span class="pill is-connecting" id="connectionStatus">接続中...</span>
+                <span class="pill is-phase" id="phaseIndicator">待機中</span>
+            </div>
+        </header>
+
+        <!-- フェーズ進行ステッパー -->
+        <nav class="stepper" aria-label="ゲーム進行状況">
+            <div class="step" id="step-waiting">
+                <span class="step-dot">1</span>
+                <span class="step-text">待機中</span>
+            </div>
+            <div class="step" id="step-interval">
+                <span class="step-dot">2</span>
+                <span class="step-text">休憩中</span>
+            </div>
+            <div class="step" id="step-pre-game">
+                <span class="step-dot">3</span>
+                <span class="step-text">開始前</span>
+            </div>
+            <div class="step" id="step-in-game">
+                <span class="step-dot">4</span>
+                <span class="step-text">ゲーム中</span>
+            </div>
+            <div class="step" id="step-game-over">
+                <span class="step-dot">5</span>
+                <span class="step-text">終了</span>
+            </div>
+        </nav>
+
+        <!-- タイマー -->
+        <section class="timer-card card" id="timerDisplay">
+            <div class="timer-value" id="timerValue">00:00</div>
+            <div class="timer-label" id="timerLabel">タイマー停止中</div>
+        </section>
+
+        <main class="content">
+
+            <!-- フェーズ1: 待機中（設定） -->
+            <section class="phase-panel card fade-in" id="phase-waiting">
+                <h2 class="panel-title">ゲーム設定</h2>
+
+                <div class="settings-grid">
+                    <div class="field">
+                        <label for="intervalTime">休憩時間 <span class="req">*</span></label>
+                        <select id="intervalTime" required>
+                            <option value="">選択してください</option>
+                            <option value="5">デバッグ用 5秒</option>
+                            <option value="60">1分</option>
+                            <option value="120">2分</option>
+                            <option value="180">3分</option>
+                            <option value="300">5分</option>
+                            <option value="600">10分</option>
+                            <option value="900">15分</option>
+                            <option value="1200">20分</option>
+                            <option value="1800">30分</option>
+                            <option value="2400">40分</option>
+                            <option value="3000">50分</option>
+                            <option value="3600">60分</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="gameRule">ルール <span class="req">*</span></label>
+                        <select id="gameRule" required>
+                            <option value="">選択してください</option>
+                            <option value="フラッグ戦">フラッグ戦</option>
+                            <option value="攻防戦">攻防戦</option>
+                            <option value="無限復活戦">無限復活戦</option>
+                        </select>
+                    </div>
+
+                    <div class="field">
+                        <label for="gameTime">制限時間 <span class="req">*</span></label>
+                        <select id="gameTime" required>
+                            <option value="">選択してください</option>
+                            <option value="5">デバッグ用 5秒</option>
+                            <option value="60">1分</option>
+                            <option value="120">2分</option>
+                            <option value="180">3分</option>
+                            <option value="300">5分</option>
+                            <option value="600">10分</option>
+                            <option value="900">15分</option>
+                            <option value="1200">20分</option>
+                            <option value="1800">30分</option>
+                            <option value="2400">40分</option>
+                            <option value="3000">50分</option>
+                            <option value="3600">60分</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="button" class="link-toggle" id="optionToggle">+ オプションを追加</button>
+
+                <div class="options-section" id="optionsSection" hidden>
+                    <div class="chip-group">
+                        <label class="chip">
+                            <input type="checkbox" id="option1" value="1回復活">
+                            <span>1回復活</span>
+                        </label>
+                        <label class="chip">
+                            <input type="checkbox" id="option2" value="フルオート禁止">
+                            <span>フルオート禁止</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="divider"></div>
+
+                <h3 class="section-title">チーム位置設定</h3>
+                <div class="team-position-grid">
+                    <div class="field">
+                        <label for="redPosition" class="team-label red">赤チーム <span class="req">*</span></label>
+                        <select id="redPosition" class="team-select red" required>
+                            <option value="">選択してください</option>
+                        </select>
+                    </div>
+
+                    <button type="button" class="swap-button" id="swapPositions" title="位置を入れ替え" aria-label="位置を入れ替え">⇄</button>
+
+                    <div class="field">
+                        <label for="yellowPosition" class="team-label yellow">黄チーム <span class="req">*</span></label>
+                        <select id="yellowPosition" class="team-select yellow" required>
+                            <option value="">選択してください</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="action-row">
+                    <button type="button" class="btn btn-secondary" id="resetBtn">リセット</button>
+                    <button type="button" class="btn btn-primary btn-block" id="startIntervalBtn" disabled>
+                        休憩開始 →
+                    </button>
+                </div>
+            </section>
+
+            <!-- フェーズ2: 休憩中 -->
+            <section class="phase-panel card fade-in" id="phase-interval" hidden>
+                <h2 class="panel-title">休憩中</h2>
+
+                <div class="settings-summary" id="settingsDisplay"></div>
+
+                <div class="action-row">
+                    <button type="button" class="btn btn-secondary btn-block" id="skipIntervalBtn">休憩をスキップ →</button>
+                </div>
+            </section>
+
+            <!-- フェーズ3: ゲーム開始前 -->
+            <section class="phase-panel card fade-in" id="phase-pre-game" hidden>
+                <h2 class="panel-title">ゲーム開始前</h2>
+
+                <div class="settings-summary" id="settingsDisplayPreGame"></div>
+
+                <h3 class="section-title">準備完了チェック</h3>
+                <div class="ready-grid">
+                    <label class="ready-toggle red">
+                        <input type="checkbox" id="redReady">
+                        <span class="ready-toggle-face">
+                            <span class="ready-icon">🚩</span>
+                            <span class="ready-team-name">赤チーム</span>
+                            <span class="ready-state">準備中...</span>
+                        </span>
+                    </label>
+                    <label class="ready-toggle yellow">
+                        <input type="checkbox" id="yellowReady">
+                        <span class="ready-toggle-face">
+                            <span class="ready-icon">🚩</span>
+                            <span class="ready-team-name">黄チーム</span>
+                            <span class="ready-state">準備中...</span>
+                        </span>
+                    </label>
+                </div>
+
+                <label class="switch-row">
+                    <input type="checkbox" id="autoProgress">
+                    <span class="switch"></span>
+                    <span class="switch-label">自動進行（両チーム準備完了で自動的にゲーム開始）</span>
+                </label>
+
+                <div class="action-row">
+                    <button type="button" class="btn btn-primary btn-block" id="startGameBtn" disabled>
+                        ゲーム開始 →
+                    </button>
+                </div>
+            </section>
+
+            <!-- フェーズ4: ゲーム中 -->
+            <section class="phase-panel card fade-in" id="phase-in-game" hidden>
+                <h2 class="panel-title">ゲーム中</h2>
+
+                <div class="settings-summary" id="settingsDisplayGame"></div>
+
+                <div class="game-stats" id="gameStats" hidden></div>
+
+                <div class="action-row">
+                    <button type="button" class="btn btn-danger btn-block" id="endGameBtn">ゲーム終了</button>
+                </div>
+            </section>
+
+            <!-- フェーズ5: ゲーム終了 -->
+            <section class="phase-panel card fade-in" id="phase-game-over" hidden>
+                <h2 class="panel-title">ゲーム終了</h2>
+
+                <div class="result-display" id="resultDisplay"></div>
+
+                <div class="action-row">
+                    <button type="button" class="btn btn-secondary btn-block" id="newGameBtn">新しいゲーム →</button>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- ユーティリティ・ドック（音声・デバッグ） -->
+        <footer class="utility-dock">
+            <details class="util-card card" open>
+                <summary>
+                    <span class="audio-indicator" id="audioIndicator">🔇</span>
+                    <span id="audioText">音声待機中</span>
+                </summary>
+                <audio id="audioPlayer" preload="none"></audio>
+            </details>
+
+            <details class="util-card card">
+                <summary>🛠️ デバッグ情報</summary>
+                <div class="debug-info">
+                    <div>接続状態: <span id="debugConnection">-</span></div>
+                    <div>現在フェーズ: <span id="debugPhase">-</span></div>
+                    <div>Meshtastic: <span id="debugLora">-</span></div>
+                </div>
+                <div class="debug-buttons">
+                    <button type="button" class="btn btn-ghost" data-test-signal="1,A">テスト信号(赤準備)</button>
+                    <button type="button" class="btn btn-ghost" data-test-signal="1,B">テスト信号(黄準備)</button>
+                    <button type="button" class="btn btn-ghost" data-test-signal="2,A">テスト信号(赤ボタン)</button>
+                    <button type="button" class="btn btn-ghost" data-test-signal="2,B">テスト信号(黄ボタン)</button>
+                </div>
+            </details>
+        </footer>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+/* =========================================================
+   サバゲー進行システム - 共通デザインシステム
+   admin / display 両画面で読み込まれる基礎スタイル
+   ========================================================= */
+
+:root {
+  /* ベースカラー（フィールド運用を想定したダークテーマ） */
+  --bg: #0b1120;
+  --bg-elevated: #121a2e;
+  --surface: #17213a;
+  --surface-2: #1f2c4a;
+  --border: #2a3958;
+  --border-soft: #223050;
+
+  --text: #eef2ff;
+  --text-muted: #93a2c3;
+  --text-faint: #5d6b8c;
+
+  --accent: #38bdf8;
+  --accent-strong: #0ea5e9;
+  --accent-soft: rgba(56, 189, 248, 0.15);
+
+  --red: #f87171;
+  --red-strong: #ef4444;
+  --red-soft: rgba(239, 68, 68, 0.16);
+
+  --yellow: #fbbf24;
+  --yellow-strong: #f59e0b;
+  --yellow-soft: rgba(245, 158, 11, 0.16);
+
+  --green: #4ade80;
+  --green-strong: #22c55e;
+  --green-soft: rgba(34, 197, 94, 0.16);
+
+  --danger: #f87171;
+  --danger-strong: #ef4444;
+
+  --purple: #c084fc;
+  --purple-soft: rgba(192, 132, 252, 0.16);
+
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --shadow-glow: 0 0 0 1px var(--border-soft);
+
+  --font-ui: 'Hiragino Sans', 'Yu Gothic UI', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', 'Consolas', 'Courier New', monospace;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  background: var(--bg);
+  color: var(--text);
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  line-height: 1.5;
+}
+
+/* ふわっとした背景の質感（ビネット＋グリッド） */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 15% -10%, rgba(56, 189, 248, 0.12), transparent 45%),
+    radial-gradient(circle at 100% 10%, rgba(192, 132, 252, 0.08), transparent 40%),
+    var(--bg);
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+button {
+  font-family: inherit;
+}
+
+/* コンポーネント側で display を明示指定していても、hidden 属性を必ず優先させる */
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- 共通: ピル / バッジ ---------- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.pill::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.9;
+}
+
+.pill.is-connected { color: var(--green); border-color: rgba(74, 222, 128, 0.35); background: var(--green-soft); }
+.pill.is-connecting { color: var(--yellow); border-color: rgba(251, 191, 36, 0.35); background: var(--yellow-soft); }
+.pill.is-disconnected { color: var(--red); border-color: rgba(248, 113, 113, 0.35); background: var(--red-soft); }
+.pill.is-phase { color: var(--accent); border-color: rgba(56, 189, 248, 0.35); background: var(--accent-soft); }
+
+/* ---------- 共通: ボタン ---------- */
+.btn {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  padding: 14px 22px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+  letter-spacing: 0.01em;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-strong), #6366f1);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(14, 165, 233, 0.25);
+}
+.btn-primary:hover:not(:disabled) { filter: brightness(1.08); }
+
+.btn-secondary {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border);
+}
+.btn-secondary:hover:not(:disabled) { background: var(--surface); border-color: var(--accent); }
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--danger-strong), #b91c1c);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(239, 68, 68, 0.25);
+}
+.btn-danger:hover:not(:disabled) { filter: brightness(1.08); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-muted);
+  border-color: var(--border);
+  font-weight: 600;
+}
+.btn-ghost:hover:not(:disabled) { color: var(--text); border-color: var(--accent); }
+
+.btn-block { width: 100%; }
+
+/* ---------- 共通: カード ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+/* ---------- 共通: スクロールバー ---------- */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+
+/* ---------- 共通: アニメーション ---------- */
+@keyframes pulse-soft {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+}
+
+@keyframes pulse-fast {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.fade-in { animation: fade-in 0.25s ease both; }
