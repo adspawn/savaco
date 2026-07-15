@@ -251,10 +251,12 @@ function updateTimer(timer) {
     elements.timerLabel.textContent = labels[currentState?.phase] || 'タイマー';
 
     elements.timerValue.className = 'timer-value';
-    if (timer.direction === 'down' && timer.current <= 60) {
+    // タイマーが実際に動いていないとき（待機中・ゲーム終了後の00:00など）は
+    // 警告色や点滅を付けない。カウントダウン中のみ残り時間の緊急度を表示する
+    if (timer.isRunning && timer.direction === 'down' && timer.current <= 60) {
         elements.timerValue.classList.add('warning');
     }
-    if (timer.direction === 'down' && timer.current <= 10) {
+    if (timer.isRunning && timer.direction === 'down' && timer.current <= 10) {
         elements.timerValue.classList.add('danger');
     }
 }
