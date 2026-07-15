@@ -98,6 +98,10 @@ function updateDisplay() {
     updateTeamStatus();
     updateGameStats();
     updateGameResult();
+
+    // タイマーはisRunning中しかtimerUpdateイベントが飛んでこないため、
+    // ここでも現在値を反映しておかないと前回ゲームの残り時間が画面に残ったままになる
+    updateTimer(currentState.timer);
 }
 
 function updatePhaseDisplay() {

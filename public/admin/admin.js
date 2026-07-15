@@ -312,6 +312,10 @@ function updateUI() {
     updateSettingsDisplay();
     updateButtonStates();
     updateDebugInfo();
+
+    // タイマーはisRunning中しかtimerUpdateイベントが飛んでこないため、
+    // ここでも現在値を反映しておかないと前回ゲームの残り時間が画面に残ったままになる
+    updateTimer(currentState.timer);
 }
 
 const PHASE_NAMES = {
