@@ -71,22 +71,23 @@
 
 .rail-step {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
     flex: 1;
     justify-content: center;
     position: relative;
 }
 
+/* 接続線はドットの中心の高さだけを通す（文字の段とはぶつからない） */
 .rail-step:not(:last-child)::after {
     content: '';
     position: absolute;
-    top: 50%;
-    right: -50%;
-    width: 100%;
+    top: 16px;
+    left: calc(50% + 20px);
+    right: calc(-50% + 20px);
     height: 2px;
     background: var(--border);
-    transform: translateY(-50%);
     z-index: 0;
 }
 
