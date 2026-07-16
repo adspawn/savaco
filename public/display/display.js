@@ -303,11 +303,20 @@ function hideError() {
     elements.errorOverlay.hidden = true;
 }
 
-function showLoRaNotification(data) {
-    const signalTypes = { 1: '準備完了', 2: 'ボタン押下' };
-    const teams = { 'red': '赤', 'yellow': '黄' };
+const LORA_ACTION_NAMES = {
+    'ready-on': '準備完了!',
+    'ready-off': '準備キャンセル',
+    'respawn': '復活 +1',
+    'flag-capture': 'フラッグ獲得!'
+};
 
-    const message = `📡 ${teams[data.team] || '?'}チーム ${signalTypes[data.signalType] || '信号'}`;
+function showLoRaNotification(data) {
+    // 無効な信号(フェーズ外など)は観客向け画面には出さない
+    const actionText = LORA_ACTION_NAMES[data.action];
+    if (!actionText) return;
+
+    const teams = { 'red': '赤', 'yellow': '黄' };
+    const message = `📡 ${teams[data.team] || '?'}チーム ${actionText}`;
 
     const notification = document.createElement('div');
     notification.className = 'stage-toast';

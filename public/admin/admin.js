@@ -130,6 +130,10 @@ socket.on('loraSignal', (data) => {
     showLoRaSignal(data);
 });
 
+socket.on('loraPending', (data) => {
+    showToast(`📡 ${data.position || '?'} 信号受信 — 判定中…`, true);
+});
+
 socket.on('error', (data) => {
     console.error('サーバーエラー:', data.message);
     alert('エラー: ' + data.message);
@@ -208,10 +212,15 @@ function setupEventListeners() {
     });
 
     // デバッグ: テスト信号送信
+    // "2,A"=短押し / "3,A"=長押し / "raw,A"=生パルス1回(判定ウィンドウを通す)
     document.querySelectorAll('[data-test-signal]').forEach((btn) => {
         btn.addEventListener('click', () => {
             const [signalType, position] = btn.dataset.testSignal.split(',');
-            sendTestSignal(parseInt(signalType, 10), position);
+            if (signalType === 'raw') {
+                sendTestPulse(position);
+            } else {
+                sendTestSignal(parseInt(signalType, 10), position);
+            }
         });
     });
 }
@@ -583,14 +592,27 @@ function updateAudioStatus(text, indicator) {
 }
 
 // LoRa(Meshtastic)信号のトースト表示
+const LORA_ACTION_NAMES = {
+    'ready-on': '準備完了 ON',
+    'ready-off': '準備完了 OFF',
+    'respawn': '復活 +1',
+    'flag-capture': 'フラッグ獲得!',
+    'ignored': '信号 (このフェーズでは無効)'
+};
+
+const PRESS_TYPE_NAMES = { 1: '準備', 2: '短押し', 3: '長押し' };
+
 function showLoRaSignal(data) {
-    const signalTypes = { 1: '準備完了', 2: 'ボタン押下' };
     const teams = { 'red': '赤', 'yellow': '黄' };
+    const actionText = LORA_ACTION_NAMES[data.action] || '信号';
+    const pressText = PRESS_TYPE_NAMES[data.signalType] || '';
 
-    const message = `📡 ${teams[data.team] || '?'}チーム ${signalTypes[data.signalType] || '信号'}`;
+    showToast(`📡 ${teams[data.team] || '?'}チーム ${pressText}: ${actionText}`, data.action === 'ignored');
+}
 
+function showToast(message, muted = false) {
     const notification = document.createElement('div');
-    notification.className = 'toast';
+    notification.className = 'toast' + (muted ? ' toast-muted' : '');
     notification.textContent = message;
 
     document.body.appendChild(notification);
@@ -621,6 +643,17 @@ function sendTestSignal(signalType, position) {
     })
         .then(response => response.json())
         .catch(error => console.error('テスト信号エラー:', error));
+}
+
+// 生パルス注入（実機のDetection Sensor通知1回分。1回=短押し、ウィンドウ内2回=長押し）
+function sendTestPulse(position) {
+    fetch('/api/test/lora-pulse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ position })
+    })
+        .then(response => response.json())
+        .catch(error => console.error('テストパルスエラー:', error));
 }
 
 // ゲーム結果保存
@@ -680,6 +713,11 @@ style.textContent = `
         z-index: 1000;
         animation: fade-in 0.2s ease;
         box-shadow: 0 8px 20px rgba(0,0,0,0.45);
+    }
+    .toast.toast-muted {
+        border-color: var(--border, #38424a);
+        border-left-color: var(--border, #38424a);
+        color: var(--text-muted, #97a3aa);
     }
 `;
 document.head.appendChild(style);

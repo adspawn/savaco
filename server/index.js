@@ -149,12 +149,21 @@ app.get('/api/results/:filename', (req, res) => {
 });
 
 // テスト用エンドポイント（実機なしでLoRa信号相当の動作を確認するデバッグ機能）
-// body: { signalType, position: 'A'|'B'|'C'|'D' } または { signalType, positionId }
+// 判定済み信号の直接注入: { signalType: 2(短押し)|3(長押し), position: 'A'|'B'|'C'|'D' }
 app.post('/api/test/lora', (req, res) => {
   const { signalType, position, positionId } = req.body;
   const resolvedPositionId = positionId || lora.getPositionId(position) || 0xA1;
   lora.sendTestSignal(signalType || 0x02, resolvedPositionId);
   res.json({ success: true, signalType, positionId: resolvedPositionId });
+});
+
+// 生パルス1回の注入（実機のDetection Sensor通知1回と同じ扱い）
+// 1回で短押し、判定ウィンドウ内に2回で長押しとして判定される
+app.post('/api/test/lora-pulse', (req, res) => {
+  const { position, positionId } = req.body;
+  const resolvedPositionId = positionId || lora.getPositionId(position) || 0xA1;
+  lora.simulatePulse(resolvedPositionId);
+  res.json({ success: true, positionId: resolvedPositionId });
 });
 
 // Socket.IO設定
