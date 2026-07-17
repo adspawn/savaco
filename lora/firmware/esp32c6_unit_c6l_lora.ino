@@ -30,8 +30,11 @@ const int MOSFET_PIN = 6;   // ローサイドMOSFET (ブザー駆動)
 // ===== タイミング設定 =====
 const unsigned long SHORT_MAX_MS       = 800;    // これ以内に離したら短押し
 const unsigned long HOLD_TIME          = 10000;  // 長押し判定 10秒 (押下開始から)
-const unsigned long PULSE_HIGH_MS      = 1000;   // G4 HIGH保持 (1パルスあたり)
-const unsigned long PULSE_GAP_MS       = 2000;   // 長押し時の2パルス間のLOW時間
+// PULSE_HIGH_MS は Meshtastic の Minimum Broadcast Seconds (=1秒) より短くすること。
+// 1秒以上HIGHを保持すると、1回のパルスで Detection Sensor が2回発報し(こだま)、
+// 短押しが長押しに誤判定される恐れがある (実測で1秒HIGH時に二重発報を確認済み)
+const unsigned long PULSE_HIGH_MS      = 600;    // G4 HIGH保持 (1パルスあたり)
+const unsigned long PULSE_GAP_MS       = 2400;   // 長押し時の2パルス間のLOW時間 (2発目は開始から3秒後)
 const unsigned long FINAL_BEEP_MS      = 3000;   // 長押し発火後の連続ピー
 const unsigned long DEBOUNCE_MS        = 50;     // チャタリング除去 (ms)
 
@@ -286,15 +289,15 @@ void fireLong() {
   // パルス1回目 (ブザーON開始)
   digitalWrite(C6L_PIN, HIGH);
   digitalWrite(MOSFET_PIN, HIGH);
-  delay(PULSE_HIGH_MS);           // 0.0-1.0s: G4 HIGH
+  delay(PULSE_HIGH_MS);           // 0.0-0.6s: G4 HIGH
   digitalWrite(C6L_PIN, LOW);
 
-  delay(PULSE_GAP_MS);            // 1.0-3.0s: G4 LOW (ブザーは鳴りっぱなし = 計3秒)
+  delay(PULSE_GAP_MS);            // 0.6-3.0s: G4 LOW (ブザーは鳴りっぱなし = 計3秒)
   digitalWrite(MOSFET_PIN, LOW);
 
   // パルス2回目 (1回目の開始から3秒後)
   digitalWrite(C6L_PIN, HIGH);
-  delay(PULSE_HIGH_MS);           // 3.0-4.0s: G4 HIGH
+  delay(PULSE_HIGH_MS);           // 3.0-3.6s: G4 HIGH
   digitalWrite(C6L_PIN, LOW);
 
   Serial.println("長押し送信完了 (パルス2回)");

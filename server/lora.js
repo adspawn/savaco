@@ -37,8 +37,16 @@ const POSITION_IDS = {
 // ESP32側は長押し時に約3秒間隔でパルスを2回送るため、余裕をみて4.5秒
 const LONG_PRESS_WINDOW_MS = parseInt(process.env.LORA_LONG_PRESS_WINDOW_MS, 10) || 4500;
 
+// 判定確定後、同ポジションのパルスを無視するロックアウト時間 (ms)
+// Detection Sensorの「こだま」(1回のパルスに対する遅延した二重発報)が
+// 新しい判定ウィンドウを開いて誤検知するのを防ぐ
+const PULSE_LOCKOUT_MS = parseInt(process.env.LORA_PULSE_LOCKOUT_MS, 10) || 2500;
+
 // 保留中の押下 (positionId -> { timer, meta })
 const pendingPresses = new Map();
+
+// ロックアウト期限 (positionId -> timestamp)
+const lockoutUntil = new Map();
 
 function setSocketIO(socketIO) {
   io = socketIO;
@@ -149,12 +157,24 @@ function handleMeshtasticPacket(packet) {
 // パルスを1回受信 → 短押し/長押しの判定ウィンドウ処理
 function registerPulse(positionId, meta = {}) {
   const positionName = getPositionName(positionId);
+  const now = Date.now();
+
+  // 判定確定直後のロックアウト中は無視 (Detection Sensorのこだま対策)
+  const lockedUntil = lockoutUntil.get(positionId) || 0;
+  if (now < lockedUntil) {
+    console.log(
+      `Pulse ignored - lockout active for ${lockedUntil - now}ms more (position ${positionName})`
+    );
+    return;
+  }
+
   const pending = pendingPresses.get(positionId);
 
   if (pending) {
     // ウィンドウ内に2回目のパルス → 長押し確定 (即時)
     clearTimeout(pending.timer);
     pendingPresses.delete(positionId);
+    lockoutUntil.set(positionId, Date.now() + PULSE_LOCKOUT_MS);
     console.log(`Pulse #2 within window -> LONG press confirmed (position ${positionName})`);
     processLoRaSignal(SIGNAL_LONG, positionId, meta);
     return;
@@ -175,6 +195,7 @@ function registerPulse(positionId, meta = {}) {
 
   const timer = setTimeout(() => {
     pendingPresses.delete(positionId);
+    lockoutUntil.set(positionId, Date.now() + PULSE_LOCKOUT_MS);
     console.log(`Window elapsed with single pulse -> SHORT press confirmed (position ${positionName})`);
     processLoRaSignal(SIGNAL_SHORT, positionId, meta);
   }, LONG_PRESS_WINDOW_MS);
@@ -187,6 +208,7 @@ function clearPendingPresses() {
     clearTimeout(pending.timer);
   }
   pendingPresses.clear();
+  lockoutUntil.clear();
 }
 
 function processLoRaSignal(signalType, positionId, meta = {}) {
@@ -391,7 +413,8 @@ function getStats() {
     portPath: meshtasticConnection ? meshtasticConnection.path : portPath,
     baudRate: meshtasticConnection ? meshtasticConnection.baudRate : 115200,
     mode: 'meshtastic',
-    longPressWindowMs: LONG_PRESS_WINDOW_MS
+    longPressWindowMs: LONG_PRESS_WINDOW_MS,
+    pulseLockoutMs: PULSE_LOCKOUT_MS
   };
 }
 

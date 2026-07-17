@@ -1,11 +1,12 @@
 // サバゲー進行システム - メインサーバー
 // Express + Socket.IO + 静的ファイル配信
 
-require('dotenv').config();
+const path = require('path');
+// カレントディレクトリに依存せず、常にプロジェクト直下の .env を読む
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
-const path = require('path');
 const fs = require('fs');
 
 // 自作モジュール
