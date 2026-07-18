@@ -132,7 +132,13 @@ function updateProgressSteps() {
 }
 
 function updateGameInfo() {
-    const shouldShow = ['interval', 'pre-game', 'in-game', 'game-over'].includes(currentState.phase);
+    let shouldShow = ['interval', 'pre-game', 'in-game', 'game-over'].includes(currentState.phase);
+
+    // 無限復活戦のゲーム中は復活カウントパネルを優先し、情報ストリップは隠す
+    // (16:9画面に収めるため。ルール等はゲーム開始前に確認済みの情報)
+    if (currentState.phase === 'in-game' && currentState.settings?.rule === '無限復活戦') {
+        shouldShow = false;
+    }
 
     if (shouldShow && currentState.settings) {
         elements.gameInfo.hidden = false;

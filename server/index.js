@@ -239,4 +239,16 @@ function gracefulShutdown() {
 process.on('SIGINT', gracefulShutdown);
 process.on('SIGTERM', gracefulShutdown);
 
+// シリアルポートのオープン失敗時、@meshtastic/transport-node-serial 内部の
+// エラーハンドラが未オープンのポートを close しようとして 'error' イベントを
+// 未処理のまま投げ、プロセスごと落ちることがある (COMポート未接続時など)。
+// ゲーム進行サーバーが道連れにならないよう、ここで受け止めてログのみ残す。
+process.on('uncaughtException', (error) => {
+  console.error('⚠️ Uncaught exception (サーバーは継続します):', error.message);
+});
+
+process.on('unhandledRejection', (reason) => {
+  console.error('⚠️ Unhandled rejection (サーバーは継続します):', reason);
+});
+
 module.exports = { app, server, io };

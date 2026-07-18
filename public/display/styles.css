@@ -1,11 +1,13 @@
 /* サバゲー進行システム - 表示画面スタイル (ミリタリーHUD調・大画面向け) */
 @import url('/assets/css/theme.css');
 
+/* 16:9モニター(TV/プロジェクター)にスクロールなしで収める:
+   高さを100vhに固定し、各要素はvh基準のclamp()でスケールさせる */
 .stage {
-    min-height: 100vh;
+    height: 100vh;
     display: flex;
     flex-direction: column;
-    padding: 28px 40px;
+    padding: clamp(10px, 2.2vh, 24px) clamp(16px, 3vw, 48px);
     position: relative;
     overflow: hidden;
     transition: background 0.6s ease;
@@ -43,8 +45,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 18px;
-    padding-bottom: 12px;
+    flex-shrink: 0;
+    margin-bottom: clamp(6px, 1.4vh, 16px);
+    padding-bottom: clamp(6px, 1.2vh, 12px);
     border-bottom: 1px solid var(--border-soft);
 }
 
@@ -53,7 +56,7 @@
     align-items: center;
     gap: 12px;
     font-family: var(--font-display);
-    font-size: 1.5rem;
+    font-size: clamp(1rem, 2.4vh, 1.5rem);
     font-weight: 800;
     letter-spacing: 0.16em;
     text-transform: uppercase;
@@ -63,10 +66,11 @@
 .progress-rail {
     display: flex;
     justify-content: space-between;
+    flex-shrink: 0;
     background: var(--surface);
     border: 1px solid var(--border-soft);
-    padding: 16px 24px;
-    margin-bottom: 24px;
+    padding: clamp(8px, 1.6vh, 16px) 24px;
+    margin-bottom: clamp(8px, 2vh, 24px);
 }
 
 .rail-step {
@@ -96,8 +100,8 @@
 
 /* 角型レールマーカー */
 .rail-dot {
-    width: 32px;
-    height: 32px;
+    width: clamp(22px, 3.6vh, 32px);
+    height: clamp(22px, 3.6vh, 32px);
     background: var(--surface-2);
     box-shadow: inset 0 0 0 1px var(--border);
     color: var(--text-faint);
@@ -126,7 +130,7 @@
 
 .rail-name {
     font-weight: 700;
-    font-size: 0.9rem;
+    font-size: clamp(0.7rem, 1.6vh, 0.9rem);
     letter-spacing: 0.1em;
     color: var(--text-faint);
     z-index: 1;
@@ -138,17 +142,19 @@
 /* ---------- メインステージ ---------- */
 .stage-main {
     flex: 1;
+    min-height: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 26px;
+    gap: clamp(10px, 2.4vh, 26px);
     justify-content: center;
 }
 
 .phase-banner {
     text-align: center;
     position: relative;
-    padding-bottom: 14px;
+    padding-bottom: clamp(8px, 1.4vh, 14px);
+    flex-shrink: 0;
 }
 
 /* フェーズ名の下にハッチ帯 */
@@ -166,7 +172,7 @@
 
 .phase-name {
     font-family: var(--font-display);
-    font-size: 3.4rem;
+    font-size: clamp(1.8rem, 6.5vh, 3.4rem);
     font-weight: 900;
     letter-spacing: 0.12em;
     line-height: 1.15;
@@ -180,8 +186,8 @@
 .phase-name.game-over { color: var(--purple); }
 
 .phase-desc {
-    margin-top: 8px;
-    font-size: 1.15rem;
+    margin-top: clamp(4px, 0.8vh, 8px);
+    font-size: clamp(0.85rem, 2vh, 1.15rem);
     letter-spacing: 0.08em;
     color: var(--text-muted);
     font-weight: 500;
@@ -191,10 +197,11 @@
 .timer-hero {
     background: var(--surface);
     border: 1px solid var(--border-soft);
-    padding: 40px 90px;
+    padding: clamp(14px, 3.4vh, 40px) clamp(40px, 7vw, 90px);
     text-align: center;
     box-shadow: var(--shadow-card);
     position: relative;
+    flex-shrink: 0;
 }
 
 /* コーナーブラケット (左上・右下) */
@@ -223,13 +230,16 @@
 
 .timer-value {
     font-family: var(--font-display);
-    font-size: 8.5rem;
+    font-size: clamp(4rem, 19vh, 10rem);
     font-weight: 800;
     line-height: 1;
     letter-spacing: 0.04em;
     color: var(--text);
     font-variant-numeric: tabular-nums;
 }
+
+/* ゲーム終了フェーズは結果パネルが主役: 00:00のタイマーは隠して縦空間を確保 (16:9で見切れ防止) */
+.stage[data-phase="game-over"] .timer-hero { display: none; }
 
 .timer-value.warning { color: var(--yellow); animation: pulse-soft 1s infinite; }
 .timer-value.danger {
@@ -239,8 +249,8 @@
 }
 
 .timer-label {
-    margin-top: 12px;
-    font-size: 1.15rem;
+    margin-top: clamp(6px, 1.2vh, 12px);
+    font-size: clamp(0.85rem, 2vh, 1.15rem);
     font-weight: 700;
     letter-spacing: 0.2em;
     color: var(--text-muted);
@@ -250,14 +260,16 @@
 .vs-panel {
     display: flex;
     align-items: center;
-    gap: 40px;
+    gap: clamp(20px, 3vw, 40px);
     width: 100%;
-    max-width: 900px;
+    max-width: min(900px, 72vw);
+    flex-shrink: 1;
+    min-height: 0;
 }
 
 .team-block {
     flex: 1;
-    padding: 28px 30px;
+    padding: clamp(12px, 2.6vh, 28px) clamp(16px, 2.4vw, 30px);
     text-align: center;
     border: 1px solid var(--border);
     background: var(--surface);
@@ -275,20 +287,20 @@
 
 .team-name {
     font-family: var(--font-display);
-    font-size: 2.2rem;
+    font-size: clamp(1.3rem, 4vh, 2.2rem);
     font-weight: 900;
     letter-spacing: 0.22em;
-    margin-bottom: 8px;
+    margin-bottom: clamp(4px, 0.8vh, 8px);
 }
 
 .team-block.red .team-name { color: var(--red); }
 .team-block.yellow .team-name { color: var(--yellow); }
 
 .team-position {
-    font-size: 1.15rem;
+    font-size: clamp(0.85rem, 2vh, 1.15rem);
     letter-spacing: 0.08em;
     color: var(--text-muted);
-    margin-bottom: 14px;
+    margin-bottom: clamp(6px, 1.4vh, 14px);
     font-weight: 600;
 }
 
@@ -297,13 +309,13 @@
     align-items: center;
     justify-content: center;
     gap: 10px;
-    font-size: 1.1rem;
+    font-size: clamp(0.85rem, 2vh, 1.1rem);
     font-weight: 700;
     letter-spacing: 0.08em;
     color: var(--text-faint);
 }
 
-.ready-indicator { font-size: 1.5rem; }
+.ready-indicator { font-size: clamp(1.1rem, 2.6vh, 1.5rem); }
 
 .ready-status.ready { color: var(--green); }
 .ready-status.ready .ready-indicator { animation: bounce 1s infinite; }
@@ -335,13 +347,13 @@
     background: var(--surface);
     border: 1px solid var(--border-soft);
     border-top: 2px solid var(--border);
-    padding: 12px 26px;
+    padding: clamp(6px, 1.2vh, 12px) clamp(16px, 2vw, 26px);
     text-align: center;
     min-width: 140px;
 }
 
 .info-label {
-    font-size: 0.75rem;
+    font-size: clamp(0.62rem, 1.3vh, 0.75rem);
     letter-spacing: 0.14em;
     color: var(--text-faint);
     font-weight: 700;
@@ -350,7 +362,7 @@
 
 .info-value {
     font-family: var(--font-display);
-    font-size: 1.4rem;
+    font-size: clamp(1rem, 2.6vh, 1.4rem);
     font-weight: 800;
     letter-spacing: 0.04em;
 }
@@ -362,15 +374,15 @@
 .stats-panel {
     background: var(--surface);
     border: 1px solid var(--border-soft);
-    padding: 24px 40px;
+    padding: clamp(12px, 2.2vh, 24px) clamp(24px, 3vw, 40px);
     text-align: center;
 }
 
 .stats-title {
-    font-size: 1.15rem;
+    font-size: clamp(0.9rem, 2vh, 1.15rem);
     font-weight: 800;
     letter-spacing: 0.16em;
-    margin-bottom: 16px;
+    margin-bottom: clamp(8px, 1.5vh, 16px);
     color: var(--text-muted);
 }
 
@@ -381,7 +393,7 @@
 
 .stat-block {
     flex: 1;
-    padding: 18px 30px;
+    padding: clamp(10px, 1.8vh, 18px) clamp(18px, 2.4vw, 30px);
     border: 1px solid var(--border);
 }
 
@@ -394,7 +406,7 @@
 
 .stat-value {
     font-family: var(--font-display);
-    font-size: 3.2rem;
+    font-size: clamp(2rem, 6vh, 3.2rem);
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     transition: transform 0.2s ease, color 0.2s ease;
@@ -404,7 +416,7 @@
 .result-panel {
     background: var(--surface);
     border: 1px solid var(--border-soft);
-    padding: 44px 70px;
+    padding: clamp(16px, 3.6vh, 44px) clamp(30px, 5vw, 70px);
     text-align: center;
     box-shadow: var(--shadow-card);
     position: relative;
@@ -434,19 +446,19 @@
 }
 
 .result-title {
-    font-size: 1.4rem;
+    font-size: clamp(1rem, 2.4vh, 1.4rem);
     font-weight: 800;
     letter-spacing: 0.16em;
-    margin-bottom: 18px;
+    margin-bottom: clamp(8px, 1.7vh, 18px);
     color: var(--text-muted);
 }
 
 .winner-text {
     font-family: var(--font-display);
-    font-size: 3.2rem;
+    font-size: clamp(2rem, 6vh, 3.2rem);
     font-weight: 900;
     letter-spacing: 0.1em;
-    margin-bottom: 14px;
+    margin-bottom: clamp(8px, 1.4vh, 14px);
     animation: flicker-in 0.6s ease both;
 }
 
@@ -455,7 +467,7 @@
 .winner-text.draw { color: var(--text-faint); }
 
 .result-details {
-    font-size: 1.1rem;
+    font-size: clamp(0.85rem, 2vh, 1.1rem);
     letter-spacing: 0.06em;
     color: var(--text-muted);
     display: grid;
