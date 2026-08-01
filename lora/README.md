@@ -1,4 +1,4 @@
-# ESP32-C6 + UNIT-C6L LoRa 通信システム まとめ
+# ESP32-C3 + UNIT-C6L LoRa 通信システム まとめ
 
 > **⚠️ v2 で信号仕様が変わりました。** 下の「v2 信号仕様 (短押し/長押し)」を参照。
 > それ以降のセクションは v1 (10秒長押しのみ) 時代の記録も含みます。ハードウェア構成・配線・トラブルシューティングは v2 でも共通です。
@@ -50,11 +50,11 @@
 
 ## 概要
 
-ESP32-C6 SuperMini と M5Stack UNIT-C6L を組み合わせた **LoRa 通信システム**。
+ESP32-C3 SuperMini と M5Stack UNIT-C6L を組み合わせた **LoRa 通信システム**。
 
 | 役割 | 構成 | 状態 |
 |------|------|------|
-| **送信側** | ESP32-C6 + UNIT-C6L + ボタン + ブザー | 動作確認済み |
+| **送信側** | ESP32-C3 + UNIT-C6L + ボタン + ブザー | 動作確認済み |
 | **受信側** | UNIT-C6L を PC に USB 接続 + Python | 動作確認済み |
 
 外部ボタンを **10秒間長押し** すると、ブザーが鳴り、UNIT-C6L の G4 へ信号を送る。Meshtastic の **Detection Sensor** として LoRa 通知が飛び、受信側 UNIT-C6L 経由で PC の Python スクリプトがメッセージを受信する。
@@ -66,7 +66,7 @@ ESP32-C6 SuperMini と M5Stack UNIT-C6L を組み合わせた **LoRa 通信シ�
 ```
 [送信側デバイス]                         [受信側]
 ┌─────────────────────┐                ┌──────────────────┐
-│ ESP32-C6 SuperMini  │                │ UNIT-C6L         │
+│ ESP32-C3 SuperMini  │                │ UNIT-C6L         │
 │  ├ GPIO4 → G4 ─────┼── UNIT-C6L     │  (USB接続のみ)   │
 │  ├ GPIO5 → ボタン   │      │         └────────┬─────────┘
 │  └ GPIO6 → MOSFET   │      │                  │ USB
@@ -82,7 +82,7 @@ ESP32-C6 SuperMini と M5Stack UNIT-C6L を組み合わせた **LoRa 通信シ�
 
 | 部品 | 用途 |
 |------|------|
-| ESP32-C6 SuperMini | メイン MCU |
+| ESP32-C3 SuperMini | メイン MCU |
 | UNIT-C6L (M5Stack) | LoRa 送信 (Meshtastic) |
 | 外部ボタン (SW) | 長押し入力 |
 | NMOS MOSFET モジュール | ローサイド駆動 |
@@ -103,7 +103,7 @@ ESP32-C6 SuperMini と M5Stack UNIT-C6L を組み合わせた **LoRa 通信シ�
 ## 配線 (送信側)
 
 ```
-ESP32-C6 SuperMini          UNIT-C6L / 外部機器
+ESP32-C3 SuperMini          UNIT-C6L / 外部機器
 ─────────────────          ───────────────────
 GPIO4  ──────────────────> G4 (センサー通知)
 GPIO5  ──────────────────> デバイススイッチ (SW)
@@ -283,7 +283,7 @@ Meshtastic アプリ等からテキストを1回送ると、次のような **�
 ### メインファイル
 
 ```
-esp32c6_unit_c6l_lora/esp32c6_unit_c6l_lora.ino
+esp32c3_unit_c6l_lora/esp32c3_unit_c6l_lora.ino
 ```
 
 ### 参考にしたテストコード (旧 ESP32 版)
@@ -292,13 +292,13 @@ esp32c6_unit_c6l_lora/esp32c6_unit_c6l_lora.ino
 sketch_may22c_copy_20260616003517/sketch_may22c_copy_20260616003517.ino
 ```
 
-旧コードは ESP32 (GPIO22/23/32)、3秒長押し仕様。本プロジェクトは ESP32-C6 向けに再設計。
+旧コードは ESP32 (GPIO22/23/32)、3秒長押し仕様。本プロジェクトは ESP32-C3 向けに再設計。
 
 ### Arduino IDE 設定
 
 | 項目 | 設定 |
 |------|------|
-| ボード | ESP32C6 Dev Module (または SuperMini 用定義) |
+| ボード | ESP32C3 Dev Module (または SuperMini 用定義) |
 | USB CDC On Boot | Enabled |
 | シリアル速度 | 115200 |
 
@@ -323,7 +323,7 @@ sketch_may22c_copy_20260616003517/sketch_may22c_copy_20260616003517.ino
 ## 送信側 シリアルモニタ出力例
 
 ```
-=== ESP32-C6 + UNIT-C6L ===
+=== ESP32-C3 + UNIT-C6L ===
 起動完了 (ピピ)
 GPIO5 を 10秒長押しで発火
   ビープ: 加速ピップ 間隔 900~80 ms -> 連続ピー 3秒
@@ -370,7 +370,7 @@ STATE_IDLE
 
 | 順 | 内容 |
 |----|------|
-| 1 | 旧テストコード (`sketch_may22c`) をベースに、ESP32-C6 SuperMini + UNIT-C6L 向けの新規 `.ino` を作成 |
+| 1 | 旧テストコード (`sketch_may22c`) をベースに、ESP32-C3 SuperMini + UNIT-C6L 向けの新規 `.ino` を作成 |
 | 2 | ピン割り当てを確定: GPIO4=G4通知, GPIO5=ボタン, GPIO6=MOSFET |
 | 3 | 長押し時間を 3秒 → **10秒** に変更 |
 | 4 | ブザー動作を検討: 単純3回ビープ → 24オープニング風トリプル → **連続加速ピップ** に確定 |
@@ -406,7 +406,7 @@ STATE_IDLE
 
 ## 開発経緯・決定事項 (一覧)
 
-1. **ESP32 → ESP32-C6 SuperMini** へピン変更 (GPIO4/5/6)
+1. **ESP32 → ESP32-C3 SuperMini** へピン変更 (GPIO4/5/6)
 2. **長押し時間** 3秒 → **10秒**
 3. **ブザー** 加速ピップ (900ms→80ms) + 連続ピー 3秒
 4. **10秒到達後** は手を離しても鳴り続ける
@@ -492,8 +492,8 @@ ESP32_UNIT6CL_Lora/
 ├── 設定覚書.txt                       ← Meshtastic 設定メモ (ローカル専用・Git 非公開)
 ├── receive_serial.py                  ← 受信側 Python スクリプト
 ├── requirements.txt                   ← Python 依存パッケージ
-├── esp32c6_unit_c6l_lora/
-│   └── esp32c6_unit_c6l_lora.ino      ← 送信側スケッチ (現行版)
+├── esp32c3_unit_c6l_lora/
+│   └── esp32c3_unit_c6l_lora.ino      ← 送信側スケッチ (現行版)
 └── sketch_may22c_copy_20260616003517/
     └── sketch_may22c_copy_20260616003517.ino  ← 参考テストコード (旧版)
 ```

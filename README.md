@@ -11,7 +11,7 @@
 
 ```
 [各ポジションの送信デバイス]         [受信PC]
- ESP32-C6 + UNIT-C6L(送信)          UNIT-C6L(USB接続) ── Node.jsサーバー ── Socket.IO ──┬─ 管理画面(admin)
+ ESP32-C3 + UNIT-C6L(送信)          UNIT-C6L(USB接続) ── Node.jsサーバー ── Socket.IO ──┬─ 管理画面(admin)
    10秒長押しで発火 → Meshtastic                                                        └─ 表示画面(display)
    Detection Sensor で LoRa 通知
 ```
@@ -68,8 +68,8 @@ UNIT-C6LのCOMポートに設定してください。
 
 ## LoRa (Meshtastic) 連携
 
-- 送信側ファームウェア: [`lora/firmware/esp32c6_unit_c6l_lora.ino`](lora/firmware/esp32c6_unit_c6l_lora.ino)
-  （ESP32-C6 SuperMini + UNIT-C6L、ボタン10秒長押しで発火）
+- 送信側ファームウェア: [`lora/firmware/esp32c3_unit_c6l_lora.ino`](lora/firmware/esp32c3_unit_c6l_lora.ino)
+  （ESP32-C3 SuperMini + UNIT-C6L、ボタン10秒長押しで発火）
 - ハードウェア構成・配線・Meshtastic設定（Detection Sensor等）の詳細は [`lora/README.md`](lora/README.md) を参照
 - 受信側は `server/lora.js` が届いたテキストからポジション(A/B/C/D)を解決し、現在のゲームフェーズに応じて
   「準備完了」または「ボタン押下」として処理します
@@ -94,7 +94,7 @@ savacoV2/
 │       └── sounds/        # 音声ファイル配置場所（現状は空、README参照）
 ├── lora/
 │   ├── README.md         # ハードウェア構成・Meshtastic設定まとめ
-│   └── firmware/          # 送信側ESP32-C6ファームウェア
+│   └── firmware/          # 送信側ESP32-C3ファームウェア
 └── results/              # ゲーム結果の自動保存先（JSON）
 ```
 

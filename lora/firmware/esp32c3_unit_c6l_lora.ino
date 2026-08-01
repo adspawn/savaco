@@ -1,5 +1,5 @@
 // ============================================
-// ESP32-C6 SuperMini + UNIT-C6L (v2: 短押し/長押し対応)
+// ESP32-C3 SuperMini + UNIT-C6L (v2: 短押し/長押し対応)
 //
 //   短押し (0.8秒以内に離す) : ピッ + G4パルス1回
 //     -> サーバー側: 開始前=準備完了 / ゲーム中(無限復活戦)=復活カウント
@@ -22,7 +22,7 @@
 //       (3のままだと長押しの2回目のパルスが送信されないことがある)
 // ============================================
 
-// ===== ピン定義 (ESP32-C6 SuperMini) =====
+// ===== ピン定義 (ESP32-C3 SuperMini) =====
 const int C6L_PIN    = 4;   // UNIT-C6L G4 へ通知
 const int BUTTON_PIN = 5;   // デバイススイッチ (内部プルアップ, 短絡=LOW)
 const int MOSFET_PIN = 6;   // ローサイドMOSFET (ブザー駆動)
@@ -144,7 +144,7 @@ void setup() {
 
   playStartupBeep();
 
-  Serial.println("=== ESP32-C6 + UNIT-C6L (v2) ===");
+  Serial.println("=== ESP32-C3 + UNIT-C6L (v2) ===");
   Serial.println("起動完了 (ピピ)");
   Serial.printf("  短押し: %lu ms以内に離す -> G4パルス1回\n", SHORT_MAX_MS);
   Serial.printf("  長押し: %lu秒保持 -> G4パルス2回 (間隔 %lu ms)\n",
