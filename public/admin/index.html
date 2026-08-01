@@ -246,6 +246,12 @@
                     <div>現在フェーズ: <span id="debugPhase">-</span></div>
                     <div>Meshtastic: <span id="debugLora">-</span></div>
                 </div>
+                <div class="radio-status" id="radioStatus">
+                    <div class="radio-status-title">電波状況（最終受信）</div>
+                    <div class="radio-status-grid" id="radioStatusGrid">
+                        <!-- ポジションごとの行がJSで動的に追加される -->
+                    </div>
+                </div>
                 <div class="debug-buttons">
                     <button type="button" class="btn btn-ghost" data-test-signal="2,A">赤 短押し</button>
                     <button type="button" class="btn btn-ghost" data-test-signal="2,B">黄 短押し</button>

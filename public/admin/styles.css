@@ -521,6 +521,47 @@ select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px
 
 .debug-buttons .btn { padding: 8px 12px; font-size: 0.72rem; --chamfer: 6px; }
 
+/* ---------- 電波状況(RSSI/SNR) ---------- */
+.radio-status {
+    margin: 10px 0;
+    padding: 10px 12px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-soft);
+    border-left: 3px solid var(--border);
+}
+
+.radio-status-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--text-faint);
+    margin-bottom: 6px;
+}
+
+.radio-status-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+}
+
+.radio-status-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    color: var(--text-faint);
+}
+
+.radio-status-row .pos-label {
+    font-weight: 700;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.radio-status-row.is-fresh { color: var(--accent); }
+.radio-status-row.is-fresh .pos-label { color: var(--accent); }
+
 /* ---------- レスポンシブ ---------- */
 @media (min-width: 760px) {
     .app-shell { padding: 28px 24px 120px; }

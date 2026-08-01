@@ -71,9 +71,10 @@ UNIT-C6LのCOMポートに設定してください。
 - 送信側ファームウェア: [`lora/firmware/esp32c3_unit_c6l_lora.ino`](lora/firmware/esp32c3_unit_c6l_lora.ino)
   （ESP32-C3 SuperMini + UNIT-C6L、ボタン10秒長押しで発火）
 - ハードウェア構成・配線・Meshtastic設定（Detection Sensor等）の詳細は [`lora/README.md`](lora/README.md) を参照
-- 受信側は `server/lora.js` が届いたテキストからポジション(A/B/C/D)を解決し、現在のゲームフェーズに応じて
+- 受信側は `server/lora.js` が届いたテキストからポジション(A〜E)を解決し、現在のゲームフェーズに応じて
   「準備完了」または「ボタン押下」として処理します
-- `LORA_NODE_MAP`（`.env`）でMeshtasticノードIDとポジションを直接紐付けることも可能です
+- `LORA_NODE_MAP`（`.env`）でMeshtasticの短縮ノードID(例: `D0E4`)とポジションを紐付けます（現在5台構成、詳細は[`lora/README.md`](lora/README.md)）
+- 受信パケットのRSSI/SNR（電波品質）は管理画面のデバッグパネルに表示されます
 
 ## フォルダ構成
 

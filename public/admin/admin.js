@@ -55,8 +55,46 @@ const elements = {
 
     debugConnection: document.getElementById('debugConnection'),
     debugPhase: document.getElementById('debugPhase'),
-    debugLora: document.getElementById('debugLora')
+    debugLora: document.getElementById('debugLora'),
+    radioStatusGrid: document.getElementById('radioStatusGrid')
 };
+
+// 電波状況パネルで表示するポジション（現在稼働中のデバイス構成）
+const RADIO_POSITIONS = ['A', 'B', 'C', 'D', 'E'];
+const radioStatusByPosition = {};
+
+function initRadioStatusGrid() {
+    if (!elements.radioStatusGrid) return;
+    elements.radioStatusGrid.innerHTML = RADIO_POSITIONS.map(pos => `
+        <div class="radio-status-row" id="radioRow-${pos}">
+            <span class="pos-label">${pos}</span>
+            <span class="radio-status-text">未受信</span>
+        </div>
+    `).join('');
+}
+
+function formatRadioQuality(rssi, snr) {
+    const rssiText = (rssi === undefined || rssi === null) ? '—' : `${rssi}dBm`;
+    const snrText = (snr === undefined || snr === null) ? '—' : `${Number(snr).toFixed(1)}dB`;
+    return `RSSI ${rssiText} / SNR ${snrText}`;
+}
+
+function updateRadioStatus(position, { rssi, snr, label }) {
+    if (!position || !RADIO_POSITIONS.includes(position)) return;
+
+    radioStatusByPosition[position] = { rssi, snr, at: Date.now() };
+
+    const row = document.getElementById(`radioRow-${position}`);
+    if (!row) return;
+
+    const textEl = row.querySelector('.radio-status-text');
+    const time = new Date().toLocaleTimeString('ja-JP', { hour12: false });
+    textEl.textContent = `${formatRadioQuality(rssi, snr)}${label ? ` (${label})` : ''} @ ${time}`;
+
+    row.classList.add('is-fresh');
+    clearTimeout(row._fadeTimer);
+    row._fadeTimer = setTimeout(() => row.classList.remove('is-fresh'), 4000);
+}
 
 // 音声ファイルのプリロード（存在しないファイルは静かにスキップされる）
 function preloadAudioFiles() {
@@ -87,6 +125,7 @@ function preloadAudioFiles() {
 document.addEventListener('DOMContentLoaded', () => {
     console.log('管理画面初期化開始');
 
+    initRadioStatusGrid();
     preloadAudioFiles();
 
     socket.emit('joinAdmin');
@@ -128,10 +167,12 @@ socket.on('playSound', (data) => {
 
 socket.on('loraSignal', (data) => {
     showLoRaSignal(data);
+    updateRadioStatus(data.position, { rssi: data.rssi, snr: data.snr, label: PRESS_TYPE_NAMES[data.signalType] });
 });
 
 socket.on('loraPending', (data) => {
     showToast(`📡 ${data.position || '?'} 信号受信 — 判定中…`, true);
+    updateRadioStatus(data.position, { rssi: data.rssi, snr: data.snr, label: '判定中' });
 });
 
 socket.on('error', (data) => {
@@ -606,8 +647,11 @@ function showLoRaSignal(data) {
     const teams = { 'red': '赤', 'yellow': '黄' };
     const actionText = LORA_ACTION_NAMES[data.action] || '信号';
     const pressText = PRESS_TYPE_NAMES[data.signalType] || '';
+    const quality = (data.rssi !== undefined || data.snr !== undefined)
+        ? ` [${formatRadioQuality(data.rssi, data.snr)}]`
+        : '';
 
-    showToast(`📡 ${teams[data.team] || '?'}チーム ${pressText}: ${actionText}`, data.action === 'ignored');
+    showToast(`📡 ${teams[data.team] || '?'}チーム ${pressText}: ${actionText}${quality}`, data.action === 'ignored');
 }
 
 function showToast(message, muted = false) {

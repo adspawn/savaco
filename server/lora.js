@@ -30,7 +30,8 @@ const POSITION_IDS = {
   A: 0xA1,
   B: 0xB1,
   C: 0xC1,
-  D: 0xD1
+  D: 0xD1,
+  E: 0xE1
 };
 
 // 1回目のパルス受信後、2回目を待つ判定ウィンドウ (ms)
@@ -67,10 +68,10 @@ function parsePositionFromText(text) {
   if (!text) return null;
 
   const patterns = [
-    /BUTTON_([A-D])_/i,
-    /POSITION_([A-D])/i,
-    /_([A-D])\s+detected/i,
-    /\b([A-D])\s*detected/i
+    /BUTTON_([A-E])_/i,
+    /POSITION_([A-E])/i,
+    /_([A-E])\s+detected/i,
+    /\b([A-E])\s*detected/i
   ];
 
   for (const pattern of patterns) {
@@ -88,15 +89,27 @@ function parsePositionFromText(text) {
 }
 
 function parsePositionFromNode(fromNode, nodeMap) {
+  const hex8 = fromNode.toString(16).padStart(8, '0');
+  const shortId = hex8.slice(-4).toUpperCase(); // Meshtasticの短縮ノードID表記 (例: D0E4)
+
   const keys = [
     String(fromNode),
     `!${fromNode.toString(16)}`,
-    `!${fromNode.toString(16).padStart(8, '0')}`
+    `!${hex8}`,
+    shortId,
+    `!${shortId}`
   ];
 
+  // LORA_NODE_MAP のキーは大文字小文字を区別せずマッチさせる
+  const normalizedMap = {};
+  for (const [key, value] of Object.entries(nodeMap)) {
+    normalizedMap[key.toUpperCase()] = value;
+  }
+
   for (const key of keys) {
-    if (nodeMap[key]) {
-      return nodeMap[key].toUpperCase();
+    const match = normalizedMap[key.toUpperCase()];
+    if (match) {
+      return match.toUpperCase();
     }
   }
 
@@ -124,7 +137,8 @@ async function initializeSerial(portName = 'COM3') {
 
     meshtasticConnection = await startMeshtasticBridge(portName, (packet) => {
       console.log(
-        `Meshtastic packet from=${packet.from} port=${packet.portnum} text=${packet.text}`
+        `Meshtastic packet from=${packet.from} port=${packet.portnum} text=${packet.text}` +
+        (packet.rssi !== undefined ? ` rssi=${packet.rssi}dBm snr=${packet.snr}dB` : '')
       );
       handleMeshtasticPacket(packet);
     });
@@ -150,7 +164,9 @@ function handleMeshtasticPacket(packet) {
     source: 'meshtastic',
     fromNode: packet.from,
     text: packet.text,
-    portnum: packet.portnum
+    portnum: packet.portnum,
+    rssi: packet.rssi,
+    snr: packet.snr
   });
 }
 
@@ -189,7 +205,9 @@ function registerPulse(positionId, meta = {}) {
     io.emit('loraPending', {
       positionId,
       position: positionName,
-      windowMs: LONG_PRESS_WINDOW_MS
+      windowMs: LONG_PRESS_WINDOW_MS,
+      rssi: meta.rssi,
+      snr: meta.snr
     });
   }
 
@@ -348,6 +366,7 @@ function getPositionName(positionId) {
     case 0xB1: return 'B';
     case 0xC1: return 'C';
     case 0xD1: return 'D';
+    case 0xE1: return 'E';
     default: return null;
   }
 }
