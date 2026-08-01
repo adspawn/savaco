@@ -16,6 +16,7 @@
 
 const { SerialPort } = require('serialport');
 const state = require('./state');
+const { processTeamReadyChange } = require('./socket');
 
 let io = null;
 let meshtasticConnection = null;
@@ -285,9 +286,21 @@ function handleReadyToggle(team, phase) {
     return 'ignored';
   }
 
+  const beforeState = state.getState();
+  const beforeToggle = {
+    redReady: beforeState.settings.teams.red?.ready || false,
+    yellowReady: beforeState.settings.teams.yellow?.ready || false
+  };
+
   state.toggleTeamReady(team);
   const isReady = state.getState().settings.teams[team].ready;
   console.log(`Team ${team} ready toggled -> ${isReady}`);
+
+  // 両チーム準備完了チェック・自動進行判定
+  // (管理画面UIのtoggleTeamReadyイベントと同じ処理を通す。
+  //  これを呼ばないと、LoRaボタンでの準備完了は「自動進行」が一切発火しない)
+  processTeamReadyChange(team, beforeToggle);
+
   return isReady ? 'ready-on' : 'ready-off';
 }
 

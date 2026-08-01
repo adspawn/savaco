@@ -68,7 +68,7 @@ UNIT-C6LのCOMポートに設定してください。
 
 ## LoRa (Meshtastic) 連携
 
-- 送信側ファームウェア: [`lora/firmware/esp32c3_unit_c6l_lora.ino`](lora/firmware/esp32c3_unit_c6l_lora.ino)
+- 送信側ファームウェア: [`lora/firmware/esp32c3_unit_c6l_lora/esp32c3_unit_c6l_lora.ino`](lora/firmware/esp32c3_unit_c6l_lora/esp32c3_unit_c6l_lora.ino)
   （ESP32-C3 SuperMini + UNIT-C6L、ボタン10秒長押しで発火）
 - ハードウェア構成・配線・Meshtastic設定（Detection Sensor等）の詳細は [`lora/README.md`](lora/README.md) を参照
 - 受信側は `server/lora.js` が届いたテキストからポジション(A〜E)を解決し、現在のゲームフェーズに応じて

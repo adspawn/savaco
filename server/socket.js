@@ -7,6 +7,159 @@ const audioQueue = require('./audioQueue');
 // ゲーム開始処理中フラグ（連打防止）
 let isGameStarting = false;
 
+// 両チーム準備完了時、自動進行が有効ならルール説明→カウントダウン→ゲーム開始まで進める
+// (準備完了トグルが管理画面UIとLoRaボタンのどちらから来ても同じ経路を通るよう共通化)
+function scheduleAutoGameStart(settings) {
+  if (isGameStarting) {
+    console.log('⚠️ Game start already in progress, ignoring auto start');
+    return;
+  }
+
+  isGameStarting = true;
+
+  // all_ready.wavの再生完了を待ってから、ルール説明→start_countdown.wav→ゲーム開始
+  // 既にコールバックが設定されている場合は、その後に追加する
+  const currentCallback = audioQueue.getQueueCompleteCallback();
+  audioQueue.setQueueCompleteCallback(() => {
+    if (currentCallback) {
+      currentCallback();
+    }
+
+    console.log('✅ all_ready.wav completed, starting rule explanation...');
+
+    audioQueue.playRuleExplanationAndStart(settings, () => {
+      console.log('✅ Start countdown completed');
+      console.log('🎮 Transitioning to in-game phase...');
+
+      state.changePhase('in-game');
+      audioQueue.schedulePhaseAudio('in-game', settings);
+      global.broadcastGameState();
+
+      isGameStarting = false;
+      console.log('✅ Auto game start process completed');
+    }, true); // autoProgress = true
+  });
+
+  global.broadcastGameState();
+}
+
+// 準備完了トグル後の共通処理（管理画面UI・LoRaボタンの両方から呼ばれる）
+// beforeToggle: トグル直前の { redReady, yellowReady }
+function processTeamReadyChange(team, beforeToggle) {
+  const updatedState = state.getState();
+  const redReady = updatedState.settings.teams.red?.ready || false;
+  const yellowReady = updatedState.settings.teams.yellow?.ready || false;
+
+  // 準備完了/キャンセル音声の再生
+  // 両チーム準備完了の処理は後で行うため、ここでは個別の音声のみ追加
+  if (team === 'red') {
+    if (redReady && !beforeToggle.redReady) {
+      // OFF → ON: 準備完了音声
+      audioQueue.enqueueSound('pre-game/red_ready.wav', 9);
+    } else if (!redReady && beforeToggle.redReady) {
+      // ON → OFF: キャンセル音声
+      audioQueue.enqueueSound('pre-game/red_cancel.wav', 9);
+    }
+  }
+
+  if (team === 'yellow') {
+    if (yellowReady && !beforeToggle.yellowReady) {
+      // OFF → ON: 準備完了音声
+      audioQueue.enqueueSound('pre-game/yellow_ready.wav', 9);
+    } else if (!yellowReady && beforeToggle.yellowReady) {
+      // ON → OFF: キャンセル音声
+      audioQueue.enqueueSound('pre-game/yellow_cancel.wav', 9);
+    }
+  }
+
+  // 両チーム準備完了の処理（両方ONになった時のみ）
+  // 両方とも既にONだった場合は何もしない（重複防止）
+  const bothWereReady = beforeToggle.redReady && beforeToggle.yellowReady;
+  const bothAreReady = redReady && yellowReady;
+
+  if (bothAreReady && !bothWereReady) {
+    // 両チームが準備完了になった（片方または両方がONになった）
+    console.log('✅ Both teams ready!');
+
+    // 重複実行を防ぐため、既にall_ready.wavがキューにあるかチェック
+    const audioState = audioQueue.getAudioState();
+    const currentQueue = audioState.queue || [];
+    const currentSound = audioState.currentSound;
+    const hasAllReady = currentQueue.some(item => item === 'pre-game/all_ready.wav') ||
+                        currentSound === 'pre-game/all_ready.wav';
+
+    if (hasAllReady) {
+      console.log('⚠️ all_ready.wav already queued or playing, skipping duplicate registration');
+      return;
+    }
+
+    // red_ready.wavとyellow_ready.wavがキューに含まれているか、現在再生中かチェック
+    const hasRedReady = currentQueue.some(item => item === 'pre-game/red_ready.wav') ||
+                        currentSound === 'pre-game/red_ready.wav';
+    const hasYellowReady = currentQueue.some(item => item === 'pre-game/yellow_ready.wav') ||
+                           currentSound === 'pre-game/yellow_ready.wav';
+
+    // 両方の準備完了音声の再生完了を待ってから、all_ready.wavを再生
+    // red_ready.wavとyellow_ready.wavの両方が完了したら、all_ready.wavを再生
+    let redReadyCompleted = false;
+    let yellowReadyCompleted = false;
+    let allReadyPlayed = false; // 重複再生防止フラグ
+
+    function checkAndPlayAllReady() {
+      if (redReadyCompleted && yellowReadyCompleted && !allReadyPlayed) {
+        allReadyPlayed = true; // フラグを立てて重複再生を防止
+        console.log('✅ red_ready.wav and yellow_ready.wav completed, playing all_ready.wav');
+        audioQueue.enqueueSound('pre-game/all_ready.wav', 10);
+      }
+    }
+
+    // red_ready.wavの完了を待つ
+    audioQueue.onSoundComplete('pre-game/red_ready.wav', () => {
+      redReadyCompleted = true;
+      console.log('✅ red_ready.wav completed');
+      checkAndPlayAllReady();
+    });
+
+    // yellow_ready.wavの完了を待つ
+    audioQueue.onSoundComplete('pre-game/yellow_ready.wav', () => {
+      yellowReadyCompleted = true;
+      console.log('✅ yellow_ready.wav completed');
+      checkAndPlayAllReady();
+    });
+
+    // 既にキューに追加されているか、現在再生中かチェック
+    // キューにない場合は、既に再生済みとみなす
+    if (!hasRedReady) {
+      // キューにない場合、既に再生済みとみなす
+      redReadyCompleted = true;
+      checkAndPlayAllReady();
+    }
+    // hasRedReadyがtrueの場合は、onSoundCompleteコールバックで完了を待つ
+
+    if (!hasYellowReady) {
+      // キューにない場合、既に再生済みとみなす
+      yellowReadyCompleted = true;
+      checkAndPlayAllReady();
+    }
+    // hasYellowReadyがtrueの場合は、onSoundCompleteコールバックで完了を待つ
+
+    // 自動進行が有効な場合、all_ready.wavの後に自動的にゲームを開始
+    if (updatedState.settings.autoProgress) {
+      console.log('🚀 Auto progress enabled - will start game automatically after all_ready.wav...');
+      scheduleAutoGameStart(updatedState.settings);
+    } else {
+      console.log('⏸️ Auto progress disabled - waiting for manual game start...');
+    }
+  } else if (!bothAreReady && bothWereReady) {
+    // 両チーム準備完了から片方または両方がOFFになった場合、自動進行のコールバックをクリア
+    if (isGameStarting) {
+      console.log('⚠️ Team ready status changed - canceling auto start');
+      isGameStarting = false;
+      audioQueue.setQueueCompleteCallback(null);
+    }
+  }
+}
+
 // Socket.IOイベントハンドラーの設定
 function setupSocketHandlers(io) {
   // 音声キューにSocket.IOインスタンスを設定
@@ -64,12 +217,25 @@ function setupSocketHandlers(io) {
     // 自動進行設定更新
     socket.on('updateAutoProgress', (data) => {
       const { enabled } = data;
-      const currentState = state.getState();
       state.updateSettings({ autoProgress: enabled });
       console.log(`Auto progress ${enabled ? 'enabled' : 'disabled'}`);
       broadcastGameState();
+
+      // 既に両チーム準備完了済みの状態でONにした場合も、そのままゲームを自動開始する
+      // (ONにするタイミングが「両チーム準備完了」より後だと、トグル時の判定だけでは発火しないため)
+      if (enabled) {
+        const currentState = state.getState();
+        if (currentState.phase === 'pre-game') {
+          const redReady = currentState.settings.teams.red?.ready || false;
+          const yellowReady = currentState.settings.teams.yellow?.ready || false;
+          if (redReady && yellowReady && !isGameStarting) {
+            console.log('🚀 Auto progress enabled while both teams already ready - starting now');
+            scheduleAutoGameStart(currentState.settings);
+          }
+        }
+      }
     });
-    
+
     // チーム準備完了トグル
     socket.on('toggleTeamReady', (data) => {
       const { team } = data;
@@ -80,163 +246,13 @@ function setupSocketHandlers(io) {
           redReady: currentState.settings.teams.red?.ready || false,
           yellowReady: currentState.settings.teams.yellow?.ready || false
         };
-        
+
         state.toggleTeamReady(team);
         broadcastGameState();
-        
-        // 両チーム準備完了チェック
-        const updatedState = state.getState();
-        const redReady = updatedState.settings.teams.red?.ready || false;
-        const yellowReady = updatedState.settings.teams.yellow?.ready || false;
 
-        // 準備完了/キャンセル音声の再生
-        // 両チーム準備完了の処理は後で行うため、ここでは個別の音声のみ追加
-        if (team === 'red') {
-          if (redReady && !beforeToggle.redReady) {
-            // OFF → ON: 準備完了音声
-            audioQueue.enqueueSound('pre-game/red_ready.wav', 9);
-          } else if (!redReady && beforeToggle.redReady) {
-            // ON → OFF: キャンセル音声
-            audioQueue.enqueueSound('pre-game/red_cancel.wav', 9);
-          }
-        }
-        
-        if (team === 'yellow') {
-          if (yellowReady && !beforeToggle.yellowReady) {
-            // OFF → ON: 準備完了音声
-            audioQueue.enqueueSound('pre-game/yellow_ready.wav', 9);
-          } else if (!yellowReady && beforeToggle.yellowReady) {
-            // ON → OFF: キャンセル音声
-            audioQueue.enqueueSound('pre-game/yellow_cancel.wav', 9);
-          }
-        }
-        
-        // 両チーム準備完了の処理（両方ONになった時のみ）
-        // 両方とも既にONだった場合は何もしない（重複防止）
-        const bothWereReady = beforeToggle.redReady && beforeToggle.yellowReady;
-        const bothAreReady = redReady && yellowReady;
-        
-        if (bothAreReady && !bothWereReady) {
-          // 両チームが準備完了になった（片方または両方がONになった）
-          console.log('✅ Both teams ready!');
-          
-          // 重複実行を防ぐため、既にall_ready.wavがキューにあるかチェック
-          const audioState = audioQueue.getAudioState();
-          const currentQueue = audioState.queue || [];
-          const currentSound = audioState.currentSound;
-          const hasAllReady = currentQueue.some(item => item === 'pre-game/all_ready.wav') || 
-                              currentSound === 'pre-game/all_ready.wav';
-          
-          if (hasAllReady) {
-            console.log('⚠️ all_ready.wav already queued or playing, skipping duplicate registration');
-            return;
-          }
-          
-          // red_ready.wavとyellow_ready.wavがキューに含まれているか、現在再生中かチェック
-          const hasRedReady = currentQueue.some(item => item === 'pre-game/red_ready.wav') || 
-                              currentSound === 'pre-game/red_ready.wav';
-          const hasYellowReady = currentQueue.some(item => item === 'pre-game/yellow_ready.wav') || 
-                                 currentSound === 'pre-game/yellow_ready.wav';
-          
-          // 両方の準備完了音声の再生完了を待ってから、all_ready.wavを再生
-          // red_ready.wavとyellow_ready.wavの両方が完了したら、all_ready.wavを再生
-          let redReadyCompleted = false;
-          let yellowReadyCompleted = false;
-          let allReadyPlayed = false; // 重複再生防止フラグ
-          
-          function checkAndPlayAllReady() {
-            if (redReadyCompleted && yellowReadyCompleted && !allReadyPlayed) {
-              allReadyPlayed = true; // フラグを立てて重複再生を防止
-              console.log('✅ red_ready.wav and yellow_ready.wav completed, playing all_ready.wav');
-              audioQueue.enqueueSound('pre-game/all_ready.wav', 10);
-            }
-          }
-          
-          // red_ready.wavの完了を待つ
-          audioQueue.onSoundComplete('pre-game/red_ready.wav', () => {
-            redReadyCompleted = true;
-            console.log('✅ red_ready.wav completed');
-            checkAndPlayAllReady();
-          });
-          
-          // yellow_ready.wavの完了を待つ
-          audioQueue.onSoundComplete('pre-game/yellow_ready.wav', () => {
-            yellowReadyCompleted = true;
-            console.log('✅ yellow_ready.wav completed');
-            checkAndPlayAllReady();
-          });
-          
-          // 既にキューに追加されているか、現在再生中かチェック
-          // キューにない場合は、既に再生済みとみなす
-          if (!hasRedReady) {
-            // キューにない場合、既に再生済みとみなす
-            redReadyCompleted = true;
-            checkAndPlayAllReady();
-          }
-          // hasRedReadyがtrueの場合は、onSoundCompleteコールバックで完了を待つ
-          
-          if (!hasYellowReady) {
-            // キューにない場合、既に再生済みとみなす
-            yellowReadyCompleted = true;
-            checkAndPlayAllReady();
-          }
-          // hasYellowReadyがtrueの場合は、onSoundCompleteコールバックで完了を待つ
-          
-          // 自動進行が有効な場合、all_ready.wavの後に自動的にゲームを開始
-          if (updatedState.settings.autoProgress) {
-            console.log('🚀 Auto progress enabled - will start game automatically after all_ready.wav...');
-            
-            // 連打防止：既に処理中の場合はスキップ
-            if (isGameStarting) {
-              console.log('⚠️ Game start already in progress, ignoring auto start');
-              return;
-            }
-            
-            // 処理中フラグを立てる
-            isGameStarting = true;
-            
-            // all_ready.wavの再生完了を待ってから、ルール説明→start_countdown.wav→ゲーム開始
-            // all_ready.wavの再生完了は音声キューで管理されるため、キュー完了コールバックを使用
-            // ただし、既にコールバックが設定されている場合は、その後に追加する
-            const currentCallback = audioQueue.getQueueCompleteCallback();
-            audioQueue.setQueueCompleteCallback(() => {
-              // 現在のコールバック（all_ready.wav再生）を実行
-              if (currentCallback) {
-                currentCallback();
-              }
-              
-              // all_ready.wav完了後、ルール説明を開始
-              console.log('✅ all_ready.wav completed, starting rule explanation...');
-              
-              // ルール説明を再生し、完了後にstart_countdown.wavを再生してin-gameフェーズへ
-              audioQueue.playRuleExplanationAndStart(updatedState.settings, () => {
-                // start_countdown.wav完了後、in-gameフェーズに移行
-                console.log('✅ Start countdown completed');
-                console.log('🎮 Transitioning to in-game phase...');
-                
-                state.changePhase('in-game');
-                audioQueue.schedulePhaseAudio('in-game', updatedState.settings);
-                broadcastGameState();
-                
-                // 処理完了後、フラグをリセット
-                isGameStarting = false;
-                console.log('✅ Auto game start process completed');
-              }, true); // autoProgress = true
-            });
-            
-            // 現在の状態をブロードキャスト
-            broadcastGameState();
-          } else {
-            console.log('⏸️ Auto progress disabled - waiting for manual game start...');
-          }
-        } else if (!bothAreReady && bothWereReady) {
-          // 両チーム準備完了から片方または両方がOFFになった場合、自動進行のコールバックをクリア
-          if (isGameStarting) {
-            console.log('⚠️ Team ready status changed - canceling auto start');
-            isGameStarting = false;
-            audioQueue.setQueueCompleteCallback(null);
-          }
-        }
+        // 両チーム準備完了チェック・自動進行判定
+        // (LoRaボタン経由の準備完了トグルからも同じ処理を呼べるよう共通化してある)
+        processTeamReadyChange(team, beforeToggle);
       }
     });
     
@@ -526,4 +542,4 @@ function setupSocketHandlers(io) {
   return { broadcastGameState };
 }
 
-module.exports = { setupSocketHandlers };
+module.exports = { setupSocketHandlers, processTeamReadyChange };
