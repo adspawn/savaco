@@ -99,12 +99,33 @@ function updateRadioStatus(position, { rssi, snr, label }) {
 // 音声ファイルのプリロード（存在しないファイルは静かにスキップされる）
 function preloadAudioFiles() {
     const categories = {
-        'game-over': ['game_draw', 'game_end_safety', 'game_result', 'red_win', 'yellow_win'],
-        'in-game': ['10min', '10sec', '15min', '20min', '2min', '30min', '3min', '5min', '60sec', 'remaining'],
-        'interval': ['entry_closed', 'field_entry_rules', 'game_start_10min_before', 'game_start_15min_before', 'game_start_3min_before', 'game_start_5min_before', 'game_start_60sec_before'],
-        'other': ['buzzer_1times', 'buzzer_2times', 'buzzer_3times', 'horn'],
+        'game-over': ['flag_captured', 'game_end', 'post_game_announcement'],
+        'in-game': ['10min', '10sec_before_end', '1min', '20min', '2min', '30min', '3min', '5min', 'remaining'],
+        'interval': ['entry_closed', 'entry_closing_soon', 'game_start_10min_before', 'game_start_15min_before', 'game_start_3min_before', 'game_start_5min_before', 'game_start_60sec_before', 'game_starting_soon', 'gather_at_start_position'],
+        'other': ['horn'],
+        // all_ready / pre_game_safety_check / red_ready / red_cancel / yellow_ready / yellow_cancel は音源未収録
         'pre-game': ['all_ready', 'pre_game_safety_check', 'red_cancel', 'red_ready', 'start_countdown', 'yellow_cancel', 'yellow_ready'],
-        'rule': ['add_rule', 'mode_attack_defend', 'mode_flag_battle', 'mode_counter_respawn', 'next_game', 'red_start_position', 'rule_fullauto_off', 'rule_respawn1_drum', 'time_limit', 'yellow_start_position']
+        'rule': [
+            'a', 'add_rule', 'b', 'c', 'current_game', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
+            'mode_annihilation', 'mode_attack_defend', 'mode_battle_royale', 'mode_counter_battle',
+            'mode_counter_respawn', 'mode_flag_battle', 'mode_fox_hunt', 'mode_handgun',
+            'mode_king_of_the_hill', 'mode_medic', 'mode_rescue', 'mode_spy', 'mode_team_deathmatch',
+            'mode_terminator', 'mode_vip', 'mode_zombie',
+            'n', 'next_game', 'o', 'p', 'q', 'r',
+            'red_start_position',
+            'rule_fullauto_off', 'rule_no_electric_gun', 'rule_no_english', 'rule_no_japanese',
+            'rule_real_count', 'rule_respawn_count_1', 'rule_respawn_count_2', 'rule_respawn_count_3',
+            'rule_respawn_cutoff_10min', 'rule_respawn_cutoff_1min', 'rule_respawn_cutoff_3min',
+            'rule_respawn_cutoff_5min', 'rule_respawn_cutoff_zero_counter', 'rule_respawn_enabled',
+            'rule_respawn_exit_instruction', 'rule_respawn_infinite', 'rule_respawn_method_counter',
+            'rule_respawn_method_drum', 'rule_respawn_method_teammate', 'rule_semi_auto_only',
+            's', 'start_position_generic',
+            't', 'terrorist_start_position',
+            'time_10min', 'time_15min', 'time_1min', 'time_20min', 'time_25min', 'time_2min',
+            'time_30min', 'time_3min', 'time_40min', 'time_4min', 'time_50min', 'time_5min',
+            'time_10sec', 'time_60min', 'time_6min', 'time_7min', 'time_8min', 'time_9min', 'time_limit',
+            'u', 'v', 'w', 'x', 'y', 'yellow_start_position', 'z'
+        ]
     };
 
     const audioFiles = [];

@@ -220,48 +220,29 @@ function handleTimerEnd() {
 // ゲーム終了処理
 function handleGameEnd(reason, winner = null) {
   console.log('handleGameEnd called, reason:', reason, 'winner:', winner);
-  
-  // ゲームが早期終了（フラッグ獲得など）した場合、残り時間のアナウンスをキャンセル
-  if (reason !== 'timeout') {
-    console.log('⚠️ Game ended early (not timeout) - clearing in-game audio schedules');
-    audioQueue.clearAllSchedules(); // スケジュールされた音声をすべてキャンセル
-    
-    // フラッグ獲得終了時はhorn.wavを再生（キューはクリアしない）
-    if (reason === 'flag') {
-      console.log('📢 Playing horn.wav for flag capture');
-      audioQueue.enqueueSound('other/horn.wav', 10);
-    } else if (reason === 'manual') {
-      // 手動終了時もhorn.wavを再生（キューはクリアしない）
-      // 注意: endGameイベントで既にhorn.wavが再生されている可能性があるため、重複チェック
-      const audioState = audioQueue.getAudioState();
-      const hornIsPlaying = audioState.currentSound === 'other/horn.wav';
-      const hornInQueue = audioState.queue && audioState.queue.some(item => item === 'other/horn.wav');
-      if (!hornIsPlaying && !hornInQueue) {
-        console.log('📢 Playing horn.wav for manual game end');
-        audioQueue.enqueueSound('other/horn.wav', 10);
-      } else {
-        console.log('📢 horn.wav already playing or queued for manual game end');
-      }
-    } else {
-      // フラッグ獲得・手動終了以外の早期終了の場合、キューをクリア
-      audioQueue.clearQueue();
-    }
-  } else {
-    // タイムアップ終了時もhorn.wavを再生
-    console.log('⚠️ Game ended by timeout - clearing in-game audio schedules');
+
+  if (reason === 'flag') {
+    // フラッグ獲得: 残り時間アナウンス等の予定をキャンセルし、専用の終了アナウンスを再生
+    console.log('⚠️ Game ended by flag capture - clearing in-game audio schedules');
     audioQueue.clearAllSchedules();
-    // 既にhorn.wavがキューにある場合は重複再生を避ける
-    const audioState = audioQueue.getAudioState();
-    const hornIsPlaying = audioState.currentSound === 'other/horn.wav';
-    const hornInQueue = audioState.queue && audioState.queue.some(item => item === 'other/horn.wav');
-    if (!hornIsPlaying && !hornInQueue) {
-      console.log('📢 Playing horn.wav for timeout');
-      audioQueue.enqueueSound('other/horn.wav', 10);
-    } else {
-      console.log('📢 horn.wav already playing or queued for timeout');
-    }
+    audioQueue.clearQueue();
+    console.log('📢 Playing flag_captured.wav -> post_game_announcement.wav');
+    audioQueue.enqueueSequence(['game-over/flag_captured.wav', 'game-over/post_game_announcement.wav'], 10);
+  } else if (reason === 'manual') {
+    // 手動終了: 突発的な終了のため、通常の終了アナウンスをそのまま再生
+    console.log('⚠️ Game ended manually - clearing in-game audio schedules');
+    audioQueue.clearAllSchedules();
+    audioQueue.clearQueue();
+    console.log('📢 Playing game_end.wav -> post_game_announcement.wav');
+    audioQueue.enqueueSequence(['game-over/game_end.wav', 'game-over/post_game_announcement.wav'], 10);
+  } else {
+    // タイムアップ: 終了10秒前に scheduleInGameAudio が既に
+    // 10sec_before_end -> game_end -> post_game_announcement をキュー済みのため、
+    // ここでは何も追加せず、そのまま再生を続けさせる
+    console.log('⚠️ Game ended by timeout - in-game audio schedule already queued the ending announcement');
+    audioQueue.clearAllSchedules();
   }
-  
+
   masterGameState.result.endTime = new Date().toISOString();
   masterGameState.result.reason = reason;
   

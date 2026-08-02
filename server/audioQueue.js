@@ -338,8 +338,8 @@ function createRuleExplanation(settings) {
     settings.options.forEach(option => {
       switch(option) {
         case '1回復活':
-          // 復活方法が指定されていない場合はデフォルト
-          sequence.push('rule/rule_respawn1_drum.wav');
+          // 復活方法(カウンター/ドラム缶/味方タッチ)はUI未対応のため回数のみ案内
+          sequence.push('rule/rule_respawn_count_1.wav');
           break;
         case 'フルオート禁止':
           sequence.push('rule/rule_fullauto_off.wav');
@@ -358,16 +358,8 @@ function createRuleExplanation(settings) {
 function schedulePhaseAudio(phase, settings) {
   // 前のフェーズのスケジュールをクリア
   clearAllSchedules();
-  
-  // キューをクリア（ただし、horn.wavが再生中の場合はスキップ）
-  const audioState = getAudioState();
-  if (audioState.currentSound !== 'other/horn.wav' && 
-      !audioState.queue.some(item => item === 'other/horn.wav')) {
-    clearQueue();
-  } else {
-    console.log('⚠️ horn.wav is playing or queued, skipping queue clear');
-  }
-  
+  clearQueue();
+
   // 現在のフェーズを更新
   currentPhase = phase;
   
@@ -398,63 +390,51 @@ function schedulePhaseAudio(phase, settings) {
   }
 }
 
-// 休憩中の音声スケジューリング（新しいファイル名とブザー音に対応）
+// 休憩中の音声スケジューリング
+// タイマー(休憩残り時間)が 10:00 / 5:00 / 3:00 / 1:00 / 0:00 になった時点でそれぞれ再生
 function scheduleIntervalAudio(settings) {
   const intervalTime = settings.intervalTime;
   const ruleSequence = createRuleExplanation(settings);
-  
-  // ②休憩時間フェーズの最初のルール説明は再生しない（削除）
-  
-  // タイマー15:00（900秒）のとき
-  if (intervalTime >= 900) {
-    setSafeTimeout(() => {
-      enqueueSound('other/buzzer_2times.wav', 10);
-      enqueueSound('interval/game_start_15min_before.wav', 9);
-    }, (intervalTime - 900) * 1000);
-  }
-  
-  // タイマー10:00（600秒）のとき
+
+  // 10:00（600秒）のとき: 「次のゲーム開始まで、10分前です。」
   if (intervalTime >= 600) {
     setSafeTimeout(() => {
-      enqueueSound('other/buzzer_2times.wav', 10);
       enqueueSound('interval/game_start_10min_before.wav', 9);
     }, (intervalTime - 600) * 1000);
   }
-  
-  // タイマー5:00（300秒）のとき
+
+  // 5:00（300秒）のとき: 「次のゲーム開始まで、5分前です。」→ ゲーム内容(ルール説明)
   if (intervalTime >= 300) {
     setSafeTimeout(() => {
-      enqueueSound('other/buzzer_2times.wav', 10);
       enqueueSound('interval/game_start_5min_before.wav', 9);
-      // 5分前のアナウンス後にルール説明を再生
-      // アナウンスの再生時間を考慮して少し待つ（約3秒後）
+      // アナウンスの再生時間を考慮して少し待ってからルール説明を再生
       setSafeTimeout(() => {
         enqueueSequence(ruleSequence, 8);
       }, 3000);
     }, (intervalTime - 300) * 1000);
   }
-  
-  // タイマー3:00（180秒）のとき
+
+  // 3:00（180秒）のとき: 「次のゲーム開始まで、3分前です。」
   if (intervalTime >= 180) {
     setSafeTimeout(() => {
-      enqueueSound('other/buzzer_2times.wav', 10);
       enqueueSound('interval/game_start_3min_before.wav', 9);
-      enqueueSound('interval/field_entry_rules.wav', 8);
     }, (intervalTime - 180) * 1000);
   }
-  
-  // タイマー1:00（60秒）のとき
+
+  // 1:00（60秒）のとき: 「60秒前です」→「間もなく締切ります」→「間もなく開始します」→「スタート位置へお集まりください」
   if (intervalTime >= 60) {
     setSafeTimeout(() => {
-      enqueueSound('other/buzzer_2times.wav', 10);
-      enqueueSound('interval/game_start_60sec_before.wav', 9);
-      enqueueSound('interval/field_entry_rules.wav', 8);
+      enqueueSequence([
+        'interval/game_start_60sec_before.wav',
+        'interval/entry_closing_soon.wav',
+        'interval/game_starting_soon.wav',
+        'interval/gather_at_start_position.wav'
+      ], 9);
     }, (intervalTime - 60) * 1000);
   }
-  
-  // タイマー0:00のとき
+
+  // 0:00のとき: 「エントリーを締め切りました…」
   setSafeTimeout(() => {
-    enqueueSound('other/buzzer_2times.wav', 10);
     enqueueSound('interval/entry_closed.wav', 9);
   }, intervalTime * 1000);
 }
@@ -513,30 +493,20 @@ function schedulePreGameAudio(settings, onComplete) {
   console.log('');
 }
 
-// 両チーム準備完了時のルール説明（pre-game → in-game移行）
-// 注意: all_ready.wavは既に再生されている前提
+// 両チーム準備完了時のゲーム開始アナウンス（pre-game → in-game移行）
+// 注意: ルール説明は休憩中(interval)の5分前アナウンスで既に再生済みのため、ここでは再度説明しない
 function playRuleExplanationAndStart(settings, onComplete, autoProgress = false) {
   console.log('');
   console.log('========================================');
-  console.log('🎮 BOTH TEAMS READY - PLAYING RULE EXPLANATION');
+  console.log('🎮 BOTH TEAMS READY - STARTING GAME');
   console.log('========================================');
-  
+
   const queueBefore = audioQueue.length;
-  
-  // ルール説明音声（all_ready.wavは既に再生済み）
-  const ruleSequence = createRuleExplanation(settings);
-  const addedRules = enqueueSequence(ruleSequence, 9);
-  
-  // ルール説明後にbuzzer_2times.wavを再生
-  console.log('');
-  console.log('📢 Playing buzzer before start countdown');
-  enqueueSound('other/buzzer_2times.wav', 8);
-  
-  // buzzer_2times.wavの後にstart_countdown.wavを再生（自動進行・手動開始の両方で）
-  console.log('');
-  console.log('📢 Playing start countdown after buzzer');
-  enqueueSound('pre-game/start_countdown.wav', 7);
-  
+
+  // 「それではゲームを開始いたします、、、」
+  console.log('📢 Playing start countdown');
+  enqueueSound('pre-game/start_countdown.wav', 9);
+
   const queueAfter = audioQueue.length;
   const totalAdded = queueAfter - queueBefore;
   
@@ -578,61 +548,53 @@ function playManualStart(onComplete) {
   }
 }
 
-// ゲーム中の音声スケジューリング（新しいファイル名とブザー音に対応）
+// ゲーム中の音声スケジューリング
+// 残り時間が 30:01/20:01/10:01/5:01/3:01/1:01 になった時点で「制限時間残り」+ 分数を再生
+// (「制限時間はXX分です」という開始直後のルール説明と重複しないよう、
+//  ちょうどgameTimeと同じ閾値のときはスキップする)
 function scheduleInGameAudio(settings) {
   const gameTime = settings.gameTime;
-  
+
   console.log('');
   console.log('========================================');
   console.log('🎮 SCHEDULING IN-GAME AUDIO');
   console.log('========================================');
   console.log('Game time:', gameTime, 'seconds');
   console.log('');
-  
-  // ゲーム開始の合図（フェーズ開始直後に1回だけ）
-  console.log('📢 Game start horn');
-  enqueueSound('other/horn.wav', 10);
-  
-  // 残り時間アナウンス（ブザー音 + remaining.wav + 時間）
+
   const timePoints = [
     { time: 1800, file: 'in-game/30min.wav' }, // 30分
     { time: 1200, file: 'in-game/20min.wav' }, // 20分
-    { time: 900, file: 'in-game/15min.wav' },  // 15分
     { time: 600, file: 'in-game/10min.wav' },  // 10分
     { time: 300, file: 'in-game/5min.wav' },   // 5分
     { time: 180, file: 'in-game/3min.wav' },   // 3分
-    { time: 120, file: 'in-game/2min.wav' },   // 2分
-    { time: 60, file: 'in-game/60sec.wav' }    // 60秒
+    { time: 60, file: 'in-game/1min.wav' }     // 1分
   ];
-  
+
   timePoints.forEach(({ time, file }) => {
     // ゲーム開始直後のアナウンスを避けるため、
     // 「制限時間」と同じタイミング（time === gameTime）では再生しない
     if (gameTime > time) {
-      console.log(`  - ${time}s remaining: buzzer + remaining + ${file}`);
+      console.log(`  - ${time}s remaining: remaining + ${file}`);
       setSafeTimeout(() => {
-        enqueueSound('other/buzzer_2times.wav', 10);
-        enqueueSound('in-game/remaining.wav', 9);
-        enqueueSound(file, 8);
+        enqueueSequence(['in-game/remaining.wav', file], 8);
       }, (gameTime - time) * 1000);
     }
   });
-  
-  // 10秒前（remaining.wav + 10sec.wav、ブザー音なし）
-  // 実際の音声長とのズレを考慮して、タイマー上は残り8秒のタイミングで再生開始
-  if (gameTime >= 12) {
-    console.log(`  - 10 seconds remaining (adjusted): remaining + 10sec`);
+
+  // 終了10秒前: 「ゲーム終了まで10秒前」→「ゲーム終了」→「お疲れ様でした、、、」
+  // (この3ファイルの再生自体に数秒かかるため、実際に喋り終わる頃には残り時間がほぼ0になる想定)
+  if (gameTime > 10) {
+    console.log('  - 10 seconds remaining: 10sec_before_end -> game_end -> post_game_announcement');
     setSafeTimeout(() => {
-      enqueueSound('in-game/remaining.wav', 10);
-      enqueueSound('in-game/10sec.wav', 9);
-    }, (gameTime - 8) * 1000);
+      enqueueSequence([
+        'in-game/10sec_before_end.wav',
+        'game-over/game_end.wav',
+        'game-over/post_game_announcement.wav'
+      ], 10);
+    }, (gameTime - 10) * 1000);
   }
-  
-  // ゲーム終了（horn.wav）は削除
-  // タイムアップ時はhandleGameEndでhorn.wavを再生するため、ここではスケジュールしない
-  console.log('');
-  console.log('📢 Game end: horn.wav will be played by handleGameEnd on timeout');
-  
+
   console.log('');
   console.log('========================================');
   console.log('✅ IN-GAME AUDIO SCHEDULING COMPLETE');
@@ -661,12 +623,10 @@ function scheduleInGameAudio(settings) {
   console.log('');
 }
 
-// ゲーム終了の音声（新しいファイル名に対応）
-// ⑤終了フェーズ:
-//   1) horn.wav（終了ホーン） - 既に再生済み（changePhaseラッパーで処理）
-//   2) game_result.wav（ゲーム結果） - 既に再生済み（changePhaseラッパーで処理）
-//   3) red_win.wav / yellow_win.wav / game_draw.wav（勝敗アナウンス） - 既に再生済み（changePhaseラッパーで処理）
-//   4) game_end_safety.wavを3回再生（ただし、「新しいゲームボタン」が押されたら、再生停止、キュー削除で①待機フェーズに移行する）
+// [現在は未使用] 旧仕様のゲーム終了音声（勝敗アナウンス後にgame_end_safety.wavを3回再生）
+// 現行のゲーム終了アナウンスは state.js の handleGameEnd() が
+// game-over/game_end.wav 等を直接再生する形に変更されたため、この関数は呼ばれていない。
+// game_end_safety.wav等の音源を用意して再度3回アナウンスしたくなった場合のために残してある。
 function scheduleGameOverAudio(result) {
   console.log('');
   console.log('========================================');

@@ -280,14 +280,13 @@ function setupSocketHandlers(io) {
         
         // 処理中フラグを立てる
         isGameStarting = true;
-        console.log('🎯 Manual game start - stopping all audio and playing buzzer + start countdown');
-        
+        console.log('🎯 Manual game start - stopping all audio and playing start countdown');
+
         // すべての再生を停止してキューを削除（これにより既存のonSoundCompleteコールバックもクリアされる）
         audioQueue.clearAllSchedules();
         audioQueue.clearQueue();
-        
-        // buzzer_2times.wav + start_countdown.wav を再生
-        audioQueue.enqueueSound('other/buzzer_2times.wav', 10);
+
+        // 「それではゲームを開始いたします、、、」を再生
         audioQueue.enqueueSound('pre-game/start_countdown.wav', 9);
         
         // start_countdown.wavの完了を待つ
@@ -317,16 +316,8 @@ function setupSocketHandlers(io) {
     socket.on('endGame', () => {
       if (state.getState().phase === 'in-game') {
         console.log('Manual game end');
-        
-        // すべての再生を停止してキューを削除
-        audioQueue.clearAllSchedules();
-        audioQueue.clearQueue();
-        
-        // horn.wavを再生（game_result.wavとgame_draw.wavはchangePhaseラッパーのgame-overケースで再生される）
-        console.log('📢 Playing horn.wav for manual game end');
-        audioQueue.enqueueSound('other/horn.wav', 10);
-        
-        // ゲーム終了処理（changePhase('game-over')が呼ばれ、game-overケースでgame_result.wavとgame_draw.wavが再生される）
+
+        // ゲーム終了処理（state.jsのhandleGameEndが終了アナウンスの再生も行う）
         state.handleGameEnd('manual', 'draw');
         broadcastGameState();
       }
@@ -466,71 +457,11 @@ function setupSocketHandlers(io) {
         break;
         
       case 'game-over':
-        // ゲーム終了後、終了フェーズの音声がすべて再生されるまで待ってから待機に戻る
-        console.log('Game over phase: scheduling game-over audio and delayed return to waiting');
-        console.log('Current audio state:', JSON.stringify(audioQueue.getAudioState()));
-        
-          // horn.wavが再生中またはキューにある場合は、その完了を待ってから結果報告を再生
-          const audioState = audioQueue.getAudioState();
-          const hornIsPlaying = audioState.currentSound === 'other/horn.wav';
-          const hornInQueue = audioState.queue && audioState.queue.some(item => item === 'other/horn.wav');
-          
-          console.log(`horn.wav check - playing: ${hornIsPlaying}, in queue: ${hornInQueue}`);
-          
-          function playGameResult() {
-            console.log('Playing game result and winner announcement');
-            const finalState = state.getState();
-            
-            // 既にgame_result.wavがキューにある場合は重複再生を避ける
-            const currentQueue = audioQueue.getAudioState().queue || [];
-            const hasGameResult = currentQueue.some(item => item === 'game-over/game_result.wav');
-            
-            if (!hasGameResult) {
-              // game_result.wavを再生
-              audioQueue.enqueueSound('game-over/game_result.wav', 9);
-              
-              // 勝敗アナウンスを再生
-              let winnerSound = '';
-              switch(finalState.result.winner) {
-                case 'red':
-                  winnerSound = 'game-over/red_win.wav';
-                  audioQueue.enqueueSound(winnerSound, 8);
-                  break;
-                case 'yellow':
-                  winnerSound = 'game-over/yellow_win.wav';
-                  audioQueue.enqueueSound(winnerSound, 8);
-                  break;
-                case 'draw':
-                default:
-                  winnerSound = 'game-over/game_draw.wav';
-                  audioQueue.enqueueSound(winnerSound, 8);
-                  break;
-              }
-              
-              // 勝敗アナウンスの完了を待ってから、game_end_safety.wavを3回再生
-              audioQueue.onSoundComplete(winnerSound, () => {
-                console.log('✅ Winner announcement completed, scheduling game_end_safety.wav (3 times)');
-                audioQueue.scheduleGameOverAudio(finalState.result);
-              });
-            } else {
-              console.log('⚠️ game_result.wav already queued, skipping duplicate');
-            }
-          }
-          
-          if (hornIsPlaying || hornInQueue) {
-            console.log('Waiting for horn.wav to complete before playing game result');
-            audioQueue.onSoundComplete('other/horn.wav', () => {
-              console.log('✅ horn.wav completed, now playing game result');
-              playGameResult();
-            });
-          } else {
-            // horn.wavが既に完了しているか、再生されていない場合はすぐに結果報告を再生
-            console.log('horn.wav not playing, playing game result immediately');
-            playGameResult();
-          }
-          // 自動的に待機フェーズに戻らない（新しいゲームボタンを押すまで待機フェーズに移行しない）
-          console.log('Game over phase: waiting for manual transition to waiting phase (new game button)');
-          break;
+        // 終了アナウンス(game_end.wav / flag_captured.wav 等)は
+        // state.js の handleGameEnd() が理由(timeout/flag/manual)に応じて再生済み。
+        // 「新しいゲーム」ボタンが押されるまで自動的に待機フェーズには戻らない。
+        console.log('Game over phase: ending announcement already handled by handleGameEnd()');
+        break;
     }
     
     // 再度ブロードキャスト
