@@ -582,12 +582,13 @@ function scheduleInGameAudio(settings) {
     }
   });
 
-  // 終了10秒前: 「ゲーム終了まで10秒前」→「ゲーム終了」→「お疲れ様でした、、、」
-  // (この3ファイルの再生自体に数秒かかるため、実際に喋り終わる頃には残り時間がほぼ0になる想定)
+  // 終了10秒前: horn.wav →「ゲーム終了まで10秒前」→「ゲーム終了」→「お疲れ様でした、、、」
+  // (この4ファイルの再生自体に数秒かかるため、実際に喋り終わる頃には残り時間がほぼ0になる想定)
   if (gameTime > 10) {
-    console.log('  - 10 seconds remaining: 10sec_before_end -> game_end -> post_game_announcement');
+    console.log('  - 10 seconds remaining: horn -> 10sec_before_end -> game_end -> post_game_announcement');
     setSafeTimeout(() => {
       enqueueSequence([
+        'other/horn.wav',
         'in-game/10sec_before_end.wav',
         'game-over/game_end.wav',
         'game-over/post_game_announcement.wav'

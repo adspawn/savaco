@@ -254,6 +254,13 @@ select {
 
 select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
 
+/* ドロップダウンを開いた時の選択肢一覧はブラウザのネイティブ描画になり、
+   背景色の指定がないと(白背景に白文字などで)選択肢が見えなくなることがあるため明示指定する */
+select option {
+    background: var(--bg-elevated);
+    color: var(--text);
+}
+
 .team-select.red { border-left: 3px solid var(--red-strong); }
 .team-select.yellow { border-left: 3px solid var(--yellow-strong); }
 

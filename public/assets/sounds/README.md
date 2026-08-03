@@ -131,7 +131,7 @@ UIの制限時間ドロップダウンは 1/2/3/5/10/15/20/30/40/50/60分 のみ
 
 | ファイル | 状態 | 用途 |
 |---|---|---|
-| horn.wav | ✅ | 収録済みだが現行の再生仕様では未使用（ゲーム開始・終了の合図として今後使う場合に利用可） |
+| horn.wav | ✅ | ゲーム終了の合図（タイムアップ/フラッグ獲得/手動終了、いずれも終了アナウンスの先頭で再生） |
 | buzzer_1times.wav / buzzer_2times.wav / buzzer_3times.wav | ⚠️ | 未収録（現行仕様では使用していません） |
 | danger.wav / earthquake_emergency_stop.wav / lightning_emergency_stop.wav / emergency_stop_safety.wav | ⚠️ | 緊急停止系（未収録・未使用） |
 

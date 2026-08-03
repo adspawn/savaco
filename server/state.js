@@ -226,15 +226,15 @@ function handleGameEnd(reason, winner = null) {
     console.log('⚠️ Game ended by flag capture - clearing in-game audio schedules');
     audioQueue.clearAllSchedules();
     audioQueue.clearQueue();
-    console.log('📢 Playing flag_captured.wav -> post_game_announcement.wav');
-    audioQueue.enqueueSequence(['game-over/flag_captured.wav', 'game-over/post_game_announcement.wav'], 10);
+    console.log('📢 Playing horn.wav -> flag_captured.wav -> post_game_announcement.wav');
+    audioQueue.enqueueSequence(['other/horn.wav', 'game-over/flag_captured.wav', 'game-over/post_game_announcement.wav'], 10);
   } else if (reason === 'manual') {
     // 手動終了: 突発的な終了のため、通常の終了アナウンスをそのまま再生
     console.log('⚠️ Game ended manually - clearing in-game audio schedules');
     audioQueue.clearAllSchedules();
     audioQueue.clearQueue();
-    console.log('📢 Playing game_end.wav -> post_game_announcement.wav');
-    audioQueue.enqueueSequence(['game-over/game_end.wav', 'game-over/post_game_announcement.wav'], 10);
+    console.log('📢 Playing horn.wav -> game_end.wav -> post_game_announcement.wav');
+    audioQueue.enqueueSequence(['other/horn.wav', 'game-over/game_end.wav', 'game-over/post_game_announcement.wav'], 10);
   } else {
     // タイムアップ: 終了10秒前に scheduleInGameAudio が既に
     // 10sec_before_end -> game_end -> post_game_announcement をキュー済みのため、
