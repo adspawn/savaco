@@ -61,6 +61,28 @@ app.get('/api/lora', (req, res) => {
   res.json(lora.getStats());
 });
 
+// LoRa 送信機(ノードID) -> ポジション の対応表 (管理画面から編集。data/lora-node-map.json に保存)
+app.get('/api/lora/nodes', (req, res) => {
+  res.json(lora.getNodeInfo());
+});
+
+app.put('/api/lora/nodemap', (req, res) => {
+  try {
+    res.json(lora.setNodeMap(req.body && req.body.nodeMap));
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// 保存した対応表を破棄して .env の LORA_NODE_MAP に戻す
+app.delete('/api/lora/nodemap', (req, res) => {
+  try {
+    res.json(lora.resetNodeMap());
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // リザルト保存エンドポイント
 app.post('/api/result', (req, res) => {
   try {

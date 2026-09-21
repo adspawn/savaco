@@ -569,6 +569,57 @@ select option {
 .radio-status-row.is-fresh { color: var(--accent); }
 .radio-status-row.is-fresh .pos-label { color: var(--accent); }
 
+/* ---------- 送信機とポジション ---------- */
+.node-map { margin-top: 10px; display: grid; gap: 10px; }
+
+.node-map-note,
+.node-map-source,
+.node-map-summary {
+    font-size: 0.72rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+}
+
+.node-map-source,
+.node-map-summary { font-family: var(--font-mono); color: var(--text-faint); }
+
+.node-map-rows { display: grid; gap: 6px; }
+
+.node-map-row {
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-soft);
+    border-left: 3px solid var(--accent);
+    font-size: 0.75rem;
+}
+
+.node-map-row.is-unassigned { border-left-color: var(--border); opacity: 0.85; }
+.node-map-row .node-id { font-family: var(--font-mono); font-weight: 700; color: var(--text); }
+.node-map-row .node-seen { font-family: var(--font-mono); color: var(--text-faint); min-width: 0; overflow-wrap: anywhere; }
+.node-map-row select { padding: 8px 30px 8px 10px; font-size: 0.8rem; }
+.node-map-empty { font-size: 0.75rem; color: var(--text-faint); }
+
+.node-map-add { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.node-map-add input {
+    flex: 1 1 130px;
+    min-width: 0;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 0;
+    color: var(--text);
+    padding: 9px 10px;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+.node-map-add input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-soft); }
+.node-map-add select { padding: 8px 30px 8px 10px; font-size: 0.8rem; }
+.node-map-add .btn { padding: 8px 12px; font-size: 0.72rem; --chamfer: 6px; }
+
 /* ---------- レスポンシブ ---------- */
 @media (min-width: 760px) {
     .app-shell { padding: 28px 24px 120px; }

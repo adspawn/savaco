@@ -240,6 +240,27 @@
             </details>
 
             <details class="util-card card">
+                <summary>📡 送信機とポジション</summary>
+                <div class="node-map" id="nodeMap">
+                    <div class="node-map-note">
+                        送信機(ノードID)がどのフラッグ位置かをここで決めます。ESP32は位置を送らないので、全機同じファームウェアで使えます。
+                        同じポジションに複数台を割り当てると冗長化できます。変更は即時に保存・反映されます。
+                    </div>
+                    <div class="node-map-source" id="nodeMapSource">-</div>
+                    <div class="node-map-rows" id="nodeMapRows">
+                        <!-- ノードごとの行がJSで動的に追加される -->
+                    </div>
+                    <div class="node-map-summary" id="nodeMapSummary"></div>
+                    <div class="node-map-add">
+                        <input type="text" id="nodeMapAddId" maxlength="9" placeholder="ノードID 例: C414" autocomplete="off" spellcheck="false">
+                        <select id="nodeMapAddPosition" aria-label="追加するノードのポジション"></select>
+                        <button type="button" class="btn btn-ghost" id="nodeMapAddBtn">追加</button>
+                        <button type="button" class="btn btn-ghost" id="nodeMapResetBtn">初期設定に戻す</button>
+                    </div>
+                </div>
+            </details>
+
+            <details class="util-card card">
                 <summary>🛠️ デバッグ情報</summary>
                 <div class="debug-info">
                     <div>接続状態: <span id="debugConnection">-</span></div>

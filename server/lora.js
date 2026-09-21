@@ -1,7 +1,16 @@
 // サバゲー進行システム - LoRa通信処理
 // UNIT-C6L (Meshtastic / SX1262) USB 受信
 //
-// 信号仕様 (v2: 短押し/長押し):
+// 信号仕様 (v3: 文字列): Meshtastic の Serial Module (TEXTMSG) で ESP32 が確定結果を直接送る
+//   受信する本文は TEXT_MESSAGE_APP で「種別[:ポジション][:秒数][#連番]」の形式:
+//     SHORT / SHORT:A     短押し (ESP32側で判定済み。判定ウィンドウ待ちなし)
+//     LONG  / LONG:A      長押し (10秒保持の確定時に1通)
+//     CANCEL:A:4.2        途中で離した (記録のみ。ゲームには影響しない)
+//   ポジションは LORA_NODE_MAP (ノードID -> ポジション) を最優先で決める。
+//   1つのポジションに複数のノードを割り当てれば冗長化できる。
+//   ノードが未登録のときだけ、本文中のポジション (SHORT:A の A) を使う。
+//
+// 信号仕様 (v2: 短押し/長押し) ※旧Detection Sensor方式。未移行の送信機のために残している:
 //   送信デバイスは Meshtastic の Detection Sensor 通知しか送れない(1ビット)ため、
 //   「パルス回数」で押し方を表現する。
 //     - 短押し (0.8秒以内リリース) : G4パルス 1回
@@ -14,6 +23,8 @@
 //     長押し: ゲーム中(フラッグ戦・攻防戦)=フラッグ獲得(ゲーム終了) /
 //             ゲーム中(無限復活戦)=復活カウント / 開始前=準備完了トグル / それ以外=無視
 
+const fs = require('fs');
+const path = require('path');
 const { SerialPort } = require('serialport');
 const state = require('./state');
 const { processTeamReadyChange } = require('./socket');
@@ -44,6 +55,13 @@ const LONG_PRESS_WINDOW_MS = parseInt(process.env.LORA_LONG_PRESS_WINDOW_MS, 10)
 // 新しい判定ウィンドウを開いて誤検知するのを防ぐ
 const PULSE_LOCKOUT_MS = parseInt(process.env.LORA_PULSE_LOCKOUT_MS, 10) || 2500;
 
+// 文字列方式: 同一ポジション・同一種別の重複を1回にまとめる期間 (ms)
+// 同じポジションに複数の送信機を割り当てた場合の二重処理 (準備完了トグルが二重でOFFに戻る等) を防ぐ
+const TEXT_DEDUP_MS = parseInt(process.env.LORA_TEXT_DEDUP_MS, 10) || 3000;
+
+// 直近に処理した文字列信号 (`${positionId}:${kind}` -> timestamp)
+const recentTextSignals = new Map();
+
 // 保留中の押下 (positionId -> { timer, meta })
 const pendingPresses = new Map();
 
@@ -54,7 +72,41 @@ function setSocketIO(socketIO) {
   io = socketIO;
 }
 
-function parseNodeMap() {
+// ノードID -> ポジション の対応表
+//   優先順位: 管理画面で保存した対応表 (data/lora-node-map.json) > .env の LORA_NODE_MAP
+//   1つのポジションに複数のノードを割り当ててよい (冗長化)
+const NODE_MAP_FILE = process.env.LORA_NODE_MAP_FILE || path.join(__dirname, '..', 'data', 'lora-node-map.json');
+const POSITION_NAMES = Object.keys(POSITION_IDS);
+
+// 受信した送信機の一覧 (管理画面で未登録ノードを見つけて割り当てるため) shortId -> 情報
+const seenNodes = new Map();
+
+// ノードIDの正規化: "c414" / "!f115c414" / "F115C414" -> 大文字。4桁(短縮ID)か8桁(フルID)のみ許可
+function normalizeNodeKey(key) {
+  const k = String(key).trim().replace(/^!/, '').toUpperCase();
+  if (!/^([0-9A-F]{4}|[0-9A-F]{8})$/.test(k)) {
+    throw new Error(`ノードID "${key}" が不正です (16進数4桁 例: C414)`);
+  }
+  return k;
+}
+
+// 対応表の検証・正規化。不正なら例外 (保存前に必ず通す)
+function normalizeNodeMap(input) {
+  if (!input || typeof input !== 'object' || Array.isArray(input)) {
+    throw new Error('対応表はオブジェクトで指定してください');
+  }
+  const result = {};
+  for (const [key, value] of Object.entries(input)) {
+    const position = String(value).trim().toUpperCase();
+    if (!POSITION_NAMES.includes(position)) {
+      throw new Error(`ポジション "${value}" が不正です (${POSITION_NAMES.join('/')})`);
+    }
+    result[normalizeNodeKey(key)] = position;
+  }
+  return result;
+}
+
+function parseEnvNodeMap() {
   const raw = process.env.LORA_NODE_MAP;
   if (!raw) return {};
   try {
@@ -63,6 +115,81 @@ function parseNodeMap() {
     console.warn('LORA_NODE_MAP の JSON 解析に失敗:', error.message);
     return {};
   }
+}
+
+function loadSavedNodeMap() {
+  try {
+    return normalizeNodeMap(JSON.parse(fs.readFileSync(NODE_MAP_FILE, 'utf8')));
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      console.warn(`保存済みの対応表を読めないため .env を使用します (${NODE_MAP_FILE}):`, error.message);
+    }
+    return null;
+  }
+}
+
+let savedNodeMap = loadSavedNodeMap(); // null = 未保存 (.env を使用)
+
+function parseNodeMap() {
+  return savedNodeMap || parseEnvNodeMap();
+}
+
+function shortNodeId(fromNode) {
+  return fromNode.toString(16).padStart(8, '0').slice(-4).toUpperCase();
+}
+
+function recordSeenNode(packet) {
+  const shortId = shortNodeId(packet.from);
+  const previous = seenNodes.get(shortId);
+  seenNodes.set(shortId, {
+    shortId,
+    lastSeen: Date.now(),
+    lastText: packet.text,
+    portnum: packet.portnum,
+    rssi: packet.rssi,
+    snr: packet.snr,
+    count: (previous ? previous.count : 0) + 1
+  });
+}
+
+// 管理画面向け: 現在の対応表・受信済みノード・ポジション一覧
+function getNodeInfo() {
+  return {
+    nodeMap: parseNodeMap(),
+    source: savedNodeMap ? 'saved' : 'env',
+    positions: POSITION_NAMES,
+    seenNodes: [...seenNodes.values()].sort((a, b) => b.lastSeen - a.lastSeen)
+  };
+}
+
+function emitNodeInfo() {
+  if (io) io.emit('loraNodes', getNodeInfo());
+}
+
+// 対応表を保存 (検証 -> ファイル書き込み -> 反映)。不正な入力は例外で拒否し、既存の対応表は変えない
+function setNodeMap(input) {
+  const normalized = normalizeNodeMap(input);
+  fs.mkdirSync(path.dirname(NODE_MAP_FILE), { recursive: true });
+  const tmp = `${NODE_MAP_FILE}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(normalized, null, 2));
+  fs.renameSync(tmp, NODE_MAP_FILE); // 書き込み途中の破損を避ける
+  savedNodeMap = normalized;
+  console.log('LoRa node map saved:', JSON.stringify(normalized));
+  emitNodeInfo();
+  return getNodeInfo();
+}
+
+// 保存した対応表を破棄して .env の LORA_NODE_MAP に戻す
+function resetNodeMap() {
+  try {
+    fs.unlinkSync(NODE_MAP_FILE);
+  } catch (error) {
+    if (error.code !== 'ENOENT') throw error;
+  }
+  savedNodeMap = null;
+  console.log('LoRa node map reset to .env');
+  emitNodeInfo();
+  return getNodeInfo();
 }
 
 function parsePositionFromText(text) {
@@ -97,6 +224,7 @@ function parsePositionFromNode(fromNode, nodeMap) {
     String(fromNode),
     `!${fromNode.toString(16)}`,
     `!${hex8}`,
+    hex8, // 管理画面で保存する8桁形式 (! なし)
     shortId,
     `!${shortId}`
   ];
@@ -152,7 +280,93 @@ async function initializeSerial(portName = 'COM3') {
   }
 }
 
+// 文字列方式の本文を解釈する
+// 例: "SHORT:A#5" -> { kind: 'SHORT', position: 'A' } / "CANCEL:A:4.2" -> { kind: 'CANCEL', position: 'A', seconds: 4.2 }
+// ボタン信号でない本文 (通常のチャット等) は null
+function parseButtonMessage(text) {
+  if (!text) return null;
+  const [body] = text.trim().split('#'); // "#連番" は遅延計測用。本番では付かない
+  const [rawKind, ...rest] = body.split(':').map((part) => part.trim());
+  const kind = rawKind.toUpperCase();
+  if (kind !== 'SHORT' && kind !== 'LONG' && kind !== 'CANCEL') return null;
+
+  const message = { kind };
+  for (const part of rest) {
+    if (/^[A-E]$/i.test(part)) {
+      message.position = part.toUpperCase();
+    } else if (/^\d+(\.\d+)?$/.test(part)) {
+      message.seconds = parseFloat(part);
+    } else if (part !== '') {
+      return null; // 想定外の形式は誤動作を避けて無視
+    }
+  }
+  return message;
+}
+
+// 文字列方式 (TEXT_MESSAGE_APP) の処理。判定ウィンドウは不要で、届いた時点で確定として扱う
+function handleTextPacket(packet) {
+  const message = parseButtonMessage(packet.text);
+  if (!message) {
+    console.log(`Text message ignored (not a button signal): "${packet.text}"`);
+    return;
+  }
+
+  // ポジションはサーバー側の対応表 (ノードID -> ポジション) が最優先
+  const positionName =
+    parsePositionFromNode(packet.from, parseNodeMap()) || message.position || null;
+  if (!positionName) {
+    console.warn(
+      `Button signal from unmapped node ${packet.from.toString(16)} with no position in text: "${packet.text}"`
+    );
+    return;
+  }
+
+  const positionId = positionNameToId(positionName);
+  if (!positionId) {
+    console.warn(`Unknown position name: ${positionName}`);
+    return;
+  }
+
+  if (message.kind === 'CANCEL') {
+    console.log(
+      `Button cancelled (position ${positionName}, held ${message.seconds ?? '?'}s) - no action`
+    );
+    return;
+  }
+
+  // 同一ポジション・同一種別の重複 (複数の送信機を割り当てた場合など) は1回にまとめる
+  const dedupKey = `${positionId}:${message.kind}`;
+  const now = Date.now();
+  const last = recentTextSignals.get(dedupKey) || 0;
+  if (now - last < TEXT_DEDUP_MS) {
+    console.log(
+      `Duplicate ${message.kind} for position ${positionName} ignored (${now - last}ms after previous)`
+    );
+    return;
+  }
+  recentTextSignals.set(dedupKey, now);
+
+  processLoRaSignal(message.kind === 'LONG' ? SIGNAL_LONG : SIGNAL_SHORT, positionId, {
+    source: 'meshtastic-text',
+    fromNode: packet.from,
+    text: packet.text,
+    portnum: packet.portnum,
+    rssi: packet.rssi,
+    snr: packet.snr
+  });
+}
+
 function handleMeshtasticPacket(packet) {
+  recordSeenNode(packet);
+  emitNodeInfo();
+
+  // 文字列方式: ボタン信号として解釈できる本文だけ処理する
+  // (通常のチャット文を旧方式の「パルス1回」と誤認しないよう、旧方式の処理には流さない)
+  if (packet.portnum === 'TEXT_MESSAGE_APP') {
+    handleTextPacket(packet);
+    return;
+  }
+
   const positionName = resolvePosition(packet.from, packet.text);
   const positionId = positionNameToId(positionName);
 
@@ -386,6 +600,7 @@ function getPositionName(positionId) {
 
 async function closeSerial() {
   clearPendingPresses();
+  recentTextSignals.clear();
 
   if (meshtasticConnection) {
     try {
@@ -446,12 +661,18 @@ function getStats() {
     baudRate: meshtasticConnection ? meshtasticConnection.baudRate : 115200,
     mode: 'meshtastic',
     longPressWindowMs: LONG_PRESS_WINDOW_MS,
-    pulseLockoutMs: PULSE_LOCKOUT_MS
+    pulseLockoutMs: PULSE_LOCKOUT_MS,
+    textDedupMs: TEXT_DEDUP_MS,
+    nodeMap: parseNodeMap()
   };
 }
 
 module.exports = {
   setSocketIO,
+  handleMeshtasticPacket, // テスト用
+  getNodeInfo,
+  setNodeMap,
+  resetNodeMap,
   initializeSerial,
   processLoRaSignal,
   closeSerial,

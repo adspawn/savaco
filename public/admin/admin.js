@@ -96,6 +96,158 @@ function updateRadioStatus(position, { rssi, snr, label }) {
     row._fadeTimer = setTimeout(() => row.classList.remove('is-fresh'), 4000);
 }
 
+// ---------- 送信機(ノードID) -> ポジション の対応表 ----------
+let loraNodeInfo = null;
+
+function fetchLoraNodes() {
+    fetch('/api/lora/nodes')
+        .then(response => response.json())
+        .then(renderLoraNodes)
+        .catch(error => console.error('送信機一覧取得エラー:', error));
+}
+
+// 対応表を保存する。サーバーが検証し、不正なら400でメッセージを返す
+function saveLoraNodeMap(nodeMap) {
+    return fetch('/api/lora/nodemap', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nodeMap })
+    })
+        .then(async response => {
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || '保存に失敗しました');
+            renderLoraNodes(data);
+            return true;
+        })
+        .catch(error => {
+            showToast(`⚠️ ${error.message}`);
+            fetchLoraNodes(); // 画面をサーバーの実際の状態に戻す
+            return false;
+        });
+}
+
+function makePositionSelect(positions, current, includeUnassigned) {
+    const select = document.createElement('select');
+    if (includeUnassigned) {
+        const none = document.createElement('option');
+        none.value = '';
+        none.textContent = '未割当';
+        select.appendChild(none);
+    }
+    positions.forEach(pos => {
+        const option = document.createElement('option');
+        option.value = pos;
+        option.textContent = pos;
+        select.appendChild(option);
+    });
+    select.value = current || '';
+    return select;
+}
+
+function renderLoraNodes(info) {
+    loraNodeInfo = info;
+    const rowsEl = document.getElementById('nodeMapRows');
+    const summaryEl = document.getElementById('nodeMapSummary');
+    const sourceEl = document.getElementById('nodeMapSource');
+    if (!rowsEl || !info) return;
+
+    sourceEl.textContent = info.source === 'saved'
+        ? '設定元: 管理画面で保存した設定'
+        : '設定元: .env の初期値 (まだ管理画面で保存していません)';
+
+    // 登録済み + 受信済みのノードを1つの一覧にまとめる
+    const seenById = new Map(info.seenNodes.map(n => [n.shortId, n]));
+    const ids = [...new Set([...Object.keys(info.nodeMap), ...info.seenNodes.map(n => n.shortId)])];
+    // 8桁で登録されたノードは受信済みの短縮IDと同じ行にまとめる
+    const shortOf = (id) => id.slice(-4);
+    const rows = new Map();
+    ids.forEach(id => {
+        const key = shortOf(id);
+        if (!rows.has(key)) rows.set(key, { shortId: key, mapKeys: [] });
+        if (id in info.nodeMap) rows.get(key).mapKeys.push(id);
+    });
+
+    rowsEl.replaceChildren();
+    if (rows.size === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'node-map-empty';
+        empty.textContent = '送信機がまだありません。信号を受信するとここに表示されます。';
+        rowsEl.appendChild(empty);
+    }
+
+    rows.forEach(({ shortId, mapKeys }) => {
+        const seen = seenById.get(shortId);
+        const position = mapKeys.length ? info.nodeMap[mapKeys[0]] : '';
+
+        const row = document.createElement('div');
+        row.className = 'node-map-row' + (position ? '' : ' is-unassigned');
+
+        const idEl = document.createElement('span');
+        idEl.className = 'node-id';
+        idEl.textContent = shortId;
+
+        const seenEl = document.createElement('span');
+        seenEl.className = 'node-seen';
+        if (seen) {
+            const time = new Date(seen.lastSeen).toLocaleTimeString('ja-JP', { hour12: false });
+            seenEl.textContent = `最終受信 ${time} (${formatRadioQuality(seen.rssi, seen.snr)})`;
+        } else {
+            seenEl.textContent = '未受信';
+        }
+
+        const select = makePositionSelect(info.positions, position, true);
+        select.setAttribute('aria-label', `ノード ${shortId} のポジション`);
+        select.addEventListener('change', () => {
+            const next = { ...info.nodeMap };
+            mapKeys.forEach(k => delete next[k]);
+            if (select.value) next[shortId] = select.value;
+            saveLoraNodeMap(next);
+        });
+
+        row.append(idEl, seenEl, select);
+        rowsEl.appendChild(row);
+    });
+
+    // ポジションごとの台数 (2台以上=冗長化、0台=信号が来ない)
+    const counts = {};
+    Object.values(info.nodeMap).forEach(pos => { counts[pos] = (counts[pos] || 0) + 1; });
+    summaryEl.textContent = info.positions
+        .map(pos => `${pos}:${counts[pos] || 0}台`)
+        .join('  ');
+}
+
+function setupNodeMapControls() {
+    const addSelect = document.getElementById('nodeMapAddPosition');
+    const addInput = document.getElementById('nodeMapAddId');
+    if (!addSelect || !addInput) return;
+
+    ['A', 'B', 'C', 'D', 'E'].forEach(pos => {
+        const option = document.createElement('option');
+        option.value = pos;
+        option.textContent = pos;
+        addSelect.appendChild(option);
+    });
+
+    document.getElementById('nodeMapAddBtn').addEventListener('click', () => {
+        const id = addInput.value.trim().replace(/^!/, '').toUpperCase();
+        if (!id) return;
+        saveLoraNodeMap({ ...(loraNodeInfo ? loraNodeInfo.nodeMap : {}), [id]: addSelect.value })
+            .then(saved => { if (saved) addInput.value = ''; });
+    });
+
+    document.getElementById('nodeMapResetBtn').addEventListener('click', () => {
+        if (!confirm('管理画面で保存した設定を破棄して、.env の初期値に戻しますか？')) return;
+        fetch('/api/lora/nodemap', { method: 'DELETE' })
+            .then(response => response.json())
+            .then(renderLoraNodes)
+            .catch(error => showToast(`⚠️ ${error.message}`));
+    });
+
+    fetchLoraNodes();
+}
+
+socket.on('loraNodes', renderLoraNodes);
+
 // 音声ファイルのプリロード（存在しないファイルは静かにスキップされる）
 function preloadAudioFiles() {
     const categories = {
@@ -160,6 +312,7 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(error => console.error('オプション取得エラー:', error));
 
     setupEventListeners();
+    setupNodeMapControls();
     updateConnectionStatus('connecting');
 });
 
