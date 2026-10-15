@@ -76,69 +76,6 @@ UNIT-C6LのCOMポートに設定してください。
 - `LORA_NODE_MAP`（`.env`）でMeshtasticの短縮ノードID(例: `D0E4`)とポジションを紐付けます（現在5台構成、詳細は[`lora/README.md`](lora/README.md)）
 - 受信パケットのRSSI/SNR（電波品質）は管理画面のデバッグパネルに表示されます
 
-## 予約カレンダーの取得（他フィールドの予約人数）
-
-各フィールドが公開している Google カレンダー（iCal）を取得し、予定のタイトルから **日ごとの予約人数** を AI で判定して保存します。
-タイトルの書き方はフィールドごと・予定ごとにバラバラ（「2名　川崎様」「貸切　10〜20名　初心者パック1」「３〜４名」など）なので、
-人数の判定は Claude に任せています。「初心者パック3」「ガン10」のようなレンタル数や、「30名様まで」のような定員は人数として数えません。
-
-AI 判定には **Claude Code CLI（`claude -p`）** を使います。Pro プランでログインしていれば **API キーは不要** で、
-Pro の利用枠の中で動きます。同じタイトル（例「2名様」）は1回しか判定せず、結果は `reservations/data/cache.json` に保存されるため、
-毎日の実行で AI に送られるのは新しく追加・変更された予定だけです。
-
-### 準備
-
-1. Node.js 18 以上（`fetch` を使うため）
-2. Claude Code をインストールし、Pro アカウントでログイン
-   ```bash
-   claude        # 初回はブラウザでログイン。ログインできたら /exit で終了
-   ```
-3. 対象フィールドを `reservations/fields.json` に追加（`icsUrl` は Google カレンダーの「iCal 形式の公開アドレス」）
-   ```json
-   [
-     { "id": "itoshima-isgf", "name": "糸島ISGF", "icsUrl": "https://calendar.google.com/calendar/ical/.../public/basic.ics" }
-   ]
-   ```
-
-### 実行
-
-```bash
-npm run reservations -- --all       # 初回: 過去分もすべて判定（糸島ISGFで約17回 claude を呼びます）
-npm run reservations                # 通常: 直近30日以降の未判定分だけ判定
-npm run reservations -- --dry-run   # 取得と件数確認だけ（AI を呼ばない）
-```
-
-その他のオプション: `--field <id>`（1フィールドだけ）、`--since 2026-01-01`、`--max-calls N`、`--ics <ファイル>`（ダウンロード済みの .ics を使う）。
-
-Pro の利用上限に達した場合や、1回の実行で `RESERVATION_MAX_CALLS`（既定30回）を超えた場合は、そこで止まります。
-判定済みの分は保存されているので、次回の実行で続きから処理されます。
-
-### 出力
-
-| ファイル | 内容 |
-|---|---|
-| `reservations/data/<id>/days.json` | 日ごとの集計（人数の最小〜最大、休業、貸切、満員、人数不明の件数、元の予定と判定結果） |
-| `reservations/data/daily.csv` | 全フィールドの日ごとの集計（Excel でそのまま開けます） |
-| `reservations/data/<id>/calendar.ics` | 取得した元データ |
-
-`people_min` / `people_max` は「3〜4名」のような幅を考慮した合計です。`open_ended` は「10名様〜」のような上限なしの予約があること、
-`unknown_people` は人数が書かれていない予約の件数を表します。
-
-### 毎日 23:30 に自動実行する（Windows）
-
-コマンドプロンプトで次を実行します（`C:\path\to\savaco` はこのフォルダの場所に置き換え）。
-
-```bat
-schtasks /Create /TN "SavacoReservations" /SC DAILY /ST 23:30 /TR "cmd /c cd /d C:\path\to\savaco && npm run reservations >> reservations\update.log 2>&1"
-```
-
-- Claude Code のログイン情報を使うため、タスクは **ログインしているユーザーで** 実行されます（上のコマンドの既定）。
-- PC がスリープ中だと実行されません。「タスク スケジューラ」で該当タスクのプロパティ →「条件」→「タスクを実行するためにスリープを解除する」、
-  「設定」→「スケジュールされた時刻にタスクを開始できなかった場合、すぐにタスクを実行する」をオンにしてください。
-- `claude` が見つからないと出る場合は、`.env` の `CLAUDE_BIN` に `claude.exe` のフルパスを指定してください。
-
-Mac / Linux の場合は `crontab -e` に `30 23 * * * cd /path/to/savaco && npm run reservations >> reservations/update.log 2>&1` を追加します。
-
 ## フォルダ構成
 
 ```
@@ -156,9 +93,6 @@ savacoV2/
 │   └── assets/
 │       ├── css/theme.css  # 共通デザインシステム
 │       └── sounds/        # 音声ファイル配置場所（現状は空、README参照）
-├── reservations/       # 他フィールドの予約カレンダー取得・AI 判定（npm run reservations）
-│   ├── fields.json       # 対象フィールドと iCal URL
-│   └── data/             # 判定結果の保存先（git 管理外）
 ├── lora/
 │   ├── README.md         # ハードウェア構成・Meshtastic設定まとめ
 │   └── firmware/          # 送信側ESP32-C3ファームウェア
