@@ -4,4 +4,3 @@ node_modules/
 results/*.json
 .DS_Store
 Thumbs.db
-reservations/data/
