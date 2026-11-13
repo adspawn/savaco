@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "e220_lora")(type "KiCad")(uri "${KIPRJMOD}/lib/e220_lora.kicad_sym")(options "")(descr "E220 LoRa node custom symbols"))
+)
