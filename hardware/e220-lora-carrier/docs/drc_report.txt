@@ -1,0 +1,113 @@
+** Drc report for /home/user/savaco/hardware/e220-lora-carrier/e220_carrier.kicad_pcb **
+** Created on 2026-11-13 06:21:11 **
+
+** Found 34 DRC violations **
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(104.1000 mm, 88.0700 mm): Line on F.Silkscreen
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(104.1000 mm, 93.0700 mm): Line on F.Silkscreen
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(104.1000 mm, 97.6500 mm): Line on F.Silkscreen
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(116.4000 mm, 85.3500 mm): Line on F.Silkscreen
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(116.4000 mm, 89.9300 mm): Line on F.Silkscreen
+[silk_over_copper]: Silkscreen clipped by solder mask
+    Local override; Severity: warning
+    @(116.4000 mm, 94.9300 mm): Line on F.Silkscreen
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_THT'.
+    Local override; Severity: warning
+    @(148.0000 mm, 102.6000 mm): Footprint R1
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_THT'.
+    Local override; Severity: warning
+    @(120.0000 mm, 88.0000 mm): Footprint R3
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_THT'.
+    Local override; Severity: warning
+    @(137.2000 mm, 89.0000 mm): Footprint R5
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_THT'.
+    Local override; Severity: warning
+    @(120.0000 mm, 96.0000 mm): Footprint R4
+[lib_footprint_issues]: The current configuration does not include the library 'Capacitor_THT'.
+    Local override; Severity: warning
+    @(129.0000 mm, 78.0000 mm): Footprint C1
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_THT'.
+    Local override; Severity: warning
+    @(137.2000 mm, 96.0000 mm): Footprint R6
+[lib_footprint_issues]: The current configuration does not include the library 'MountingHole'.
+    Local override; Severity: warning
+    @(103.5000 mm, 120.5000 mm): Footprint H3
+[lib_footprint_issues]: The current configuration does not include the library 'Buzzer_Beeper'.
+    Local override; Severity: warning
+    @(150.2000 mm, 91.0000 mm): Footprint BZ1
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_THT'.
+    Local override; Severity: warning
+    @(161.0000 mm, 104.0000 mm): Footprint R7
+[lib_footprint_issues]: The current configuration does not include the library 'MountingHole'.
+    Local override; Severity: warning
+    @(168.5000 mm, 87.0000 mm): Footprint H2
+[lib_footprint_issues]: The current configuration does not include the library 'Capacitor_THT'.
+    Local override; Severity: warning
+    @(143.6000 mm, 113.0000 mm): Footprint C4
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_THT'.
+    Local override; Severity: warning
+    @(142.4000 mm, 106.6000 mm): Footprint R2
+[lib_footprint_issues]: The current configuration does not include the library 'Capacitor_THT'.
+    Local override; Severity: warning
+    @(127.6000 mm, 83.6000 mm): Footprint C2
+[lib_footprint_issues]: The current configuration does not include the library 'Connector_PinHeader_2.54mm'.
+    Local override; Severity: warning
+    @(130.5000 mm, 64.5000 mm): Footprint J3
+[lib_footprint_issues]: The current configuration does not include the library 'LED_THT'.
+    Local override; Severity: warning
+    @(131.0000 mm, 89.0000 mm): Footprint LED1
+[lib_footprint_issues]: The current configuration does not include the library 'Button_Switch_THT'.
+    Local override; Severity: warning
+    @(104.0000 mm, 89.0000 mm): Footprint SW1
+[lib_footprint_issues]: The current configuration does not include the library 'Connector_JST'.
+    Local override; Severity: warning
+    @(103.0000 mm, 101.2000 mm): Footprint J1
+[lib_footprint_issues]: The current configuration does not include the library 'Diode_THT'.
+    Local override; Severity: warning
+    @(152.4000 mm, 120.2000 mm): Footprint D2
+[lib_footprint_issues]: The current configuration does not include the library 'Package_TO_SOT_THT'.
+    Local override; Severity: warning
+    @(152.0000 mm, 112.0000 mm): Footprint Q2
+[lib_footprint_issues]: The current configuration does not include the library 'Package_TO_SOT_THT'.
+    Local override; Severity: warning
+    @(162.0000 mm, 100.0000 mm): Footprint Q1
+[lib_footprint_issues]: The current configuration does not include the library 'Capacitor_THT'.
+    Local override; Severity: warning
+    @(120.0000 mm, 92.0000 mm): Footprint C3
+[lib_footprint_issues]: The current configuration does not include the library 'LED_THT'.
+    Local override; Severity: warning
+    @(131.0000 mm, 96.0000 mm): Footprint LED2
+[lib_footprint_issues]: The current configuration does not include the library 'Resistor_THT'.
+    Local override; Severity: warning
+    @(142.4000 mm, 120.2000 mm): Footprint R8
+[lib_footprint_issues]: The current configuration does not include the library 'MountingHole'.
+    Local override; Severity: warning
+    @(168.5000 mm, 120.5000 mm): Footprint H4
+[lib_footprint_issues]: The current configuration does not include the library 'Diode_THT'.
+    Local override; Severity: warning
+    @(148.0000 mm, 99.6000 mm): Footprint D1
+[lib_footprint_issues]: The current configuration does not include the library 'Connector_JST'.
+    Local override; Severity: warning
+    @(165.0000 mm, 110.0000 mm): Footprint J2
+[lib_footprint_issues]: The current configuration does not include the library 'MountingHole'.
+    Local override; Severity: warning
+    @(103.5000 mm, 63.5000 mm): Footprint H1
+[silk_edge_clearance]: Silkscreen clipped by board edge
+    Rule: board setup constraints silk; Severity: warning
+    @(169.0000 mm, 63.0000 mm): Arc on Edge.Cuts
+    @(136.0000 mm, 61.6200 mm): Rect on F.Silkscreen
+
+** Found 0 unconnected pads **
+
+** Found 0 Footprint errors **
+
+** End of Report **
