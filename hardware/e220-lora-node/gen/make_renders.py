@@ -17,6 +17,22 @@ SIDES = {
 }
 
 
+def insets(mirror):
+    import pcbnew
+    import placement as pl
+    b = pcbnew.LoadBoard(PCB)
+    e, a = b.GetBoardEdgesBoundingBox(), b.ComputeBoundingBox(False)
+    W, H = a.GetWidth(), a.GetHeight()
+    l = (e.GetLeft() - a.GetLeft()) / W * 100
+    r = (a.GetRight() - e.GetRight()) / W * 100
+    t = (e.GetTop() - a.GetTop()) / H * 100
+    bt = (a.GetBottom() - e.GetBottom()) / H * 100
+    if mirror:
+        l, r = r, l
+    rad = pl.CORNER_R / (pcbnew.ToMM(W)) * 900
+    return f"{l:.3f},{t:.3f},{r:.3f},{bt:.3f},{rad:.1f}"
+
+
 def main(tmp):
     os.makedirs(tmp, exist_ok=True)
     js = os.path.join(tmp, "stack.js")
@@ -25,7 +41,8 @@ def main(tmp):
 const { chromium } = require('playwright');
 const fs = require('fs');
 (async () => {
-  const [out, wpx, ...svgs] = process.argv.slice(2);
+  const [out, wpx, insets, ...svgs] = process.argv.slice(2);
+  const [il, it, ir, ib, rad] = insets.split(',').map(Number);
   let layers = svgs.map(f => fs.readFileSync(f, 'utf8'))
     .map((s, i) => `<div class="l${i ? '' : ' base'}">${s}</div>`).join('');
   const html = `<html><head><style>
@@ -34,7 +51,7 @@ const fs = require('fs');
     .l{position:absolute;left:0;top:0;width:100%}
     .l.base{position:relative}
     svg{width:100%;height:auto;display:block}
-    #board{position:absolute;top:5.85%;left:0.5%;right:0.5%;bottom:0.4%;background:#14532d;border-radius:5%/3.9%}
+    #board{position:absolute;left:${il}%;top:${it}%;right:${ir}%;bottom:${ib}%;background:#14532d;border-radius:${rad}px}
   </style></head><body><div id=c><div id=board></div>${layers}</div></body></html>`;
   const browser = await chromium.launch();
   const page = await browser.newPage({viewport:{width:parseInt(wpx),height:400}, deviceScaleFactor:2});
@@ -42,7 +59,9 @@ const fs = require('fs');
   await page.evaluate(() => document.querySelectorAll('svg').forEach(s => s.removeAttribute('height')));
   const bb = await (await page.$('#c')).boundingBox();
   await page.setViewportSize({width: parseInt(wpx), height: Math.ceil(bb.height)});
-  await page.screenshot({path: out, omitBackground: true, timeout: 120000});
+  const W = parseInt(wpx), Hh = Math.ceil(bb.height);
+  await page.screenshot({path: out, omitBackground: true, timeout: 120000,
+    clip: {x: W * il / 100, y: Hh * it / 100, width: W * (1 - (il + ir) / 100), height: Hh * (1 - (it + ib) / 100)}});
   await browser.close();
 })();
 """)
@@ -62,7 +81,7 @@ const fs = require('fs');
             open(f, "w").write(s)
             files.append(f)
         out = os.path.join(ROOT, "docs", f"pcb_{side}.png")
-        subprocess.run(["node", js, out, "900"] + files, check=True, cwd=tmp)
+        subprocess.run(["node", js, out, "900", insets(side == "bottom")] + files, check=True, cwd=tmp)
         print("render:", os.path.relpath(out, ROOT))
 
 
