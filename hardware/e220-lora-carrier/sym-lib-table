@@ -1,0 +1,4 @@
+(sym_lib_table
+  (version 7)
+  (lib (name "e220_carrier")(type "KiCad")(uri "${KIPRJMOD}/lib/e220_carrier.kicad_sym")(options "")(descr "E220 LoRa carrier custom symbols"))
+)

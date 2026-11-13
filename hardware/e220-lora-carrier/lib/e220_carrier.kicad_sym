@@ -1,0 +1,420 @@
+(kicad_symbol_lib
+  (version 20220914)
+  (generator e220_carrier_gen)
+  (symbol "ESP32-C3_SuperMini"
+    (in_bom yes)
+    (on_board yes)
+    (property "Reference" "A"
+      (at -15.24 13.97 0)
+      (effects
+        (font
+          (size 1.27 1.27))
+        (justify left bottom)))
+    (property "Value" "ESP32-C3 SuperMini"
+      (at -15.24 11.43 0)
+      (effects
+        (font
+          (size 1.27 1.27))
+        (justify left bottom)))
+    (property "Footprint" "e220_carrier:ESP32-C3_SuperMini_Socket"
+      (at 0 0 0)
+      (effects
+        (font
+          (size 1.27 1.27)) hide))
+    (property "Datasheet" "https://dl.artronshop.co.th/ESP32-C3%20SuperMini%20datasheet.pdf"
+      (at 0 0 0)
+      (effects
+        (font
+          (size 1.27 1.27)) hide))
+    (property "ki_description" "ESP32-C3 SuperMini dev board (USB-C), plugged into 2x 1x8 sockets"
+      (at 0 0 0)
+      (effects
+        (font
+          (size 1.27 1.27)) hide))
+    (symbol "ESP32-C3_SuperMini_0_1"
+      (rectangle
+        (start -15.24 10.16)
+        (end 15.24 -12.7)
+        (stroke
+          (width 0.254)
+          (type default))
+        (fill
+          (type background))))
+    (symbol "ESP32-C3_SuperMini_1_1"
+      (pin passive line
+        (at -17.78 7.62 0)
+        (length 2.54)
+        (name "5V"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "1"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin power_out line
+        (at -17.78 5.08 0)
+        (length 2.54)
+        (name "3V3"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "3"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin bidirectional line
+        (at -17.78 0 0)
+        (length 2.54)
+        (name "IO0"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "8"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin bidirectional line
+        (at -17.78 -2.54 0)
+        (length 2.54)
+        (name "IO1"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "7"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin bidirectional line
+        (at -17.78 -5.08 0)
+        (length 2.54)
+        (name "IO2 (strap)"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "6"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin bidirectional line
+        (at -17.78 -7.62 0)
+        (length 2.54)
+        (name "IO3"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "5"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin bidirectional line
+        (at -17.78 -10.16 0)
+        (length 2.54)
+        (name "IO4"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "4"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin bidirectional line
+        (at 17.78 7.62 180)
+        (length 2.54)
+        (name "IO5"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "9"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin bidirectional line
+        (at 17.78 5.08 180)
+        (length 2.54)
+        (name "IO6"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "10"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin bidirectional line
+        (at 17.78 2.54 180)
+        (length 2.54)
+        (name "IO7"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "11"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin bidirectional line
+        (at 17.78 0 180)
+        (length 2.54)
+        (name "IO8 (LED/SDA)"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "12"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin bidirectional line
+        (at 17.78 -2.54 180)
+        (length 2.54)
+        (name "IO9 (BOOT/SCL)"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "13"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin bidirectional line
+        (at 17.78 -5.08 180)
+        (length 2.54)
+        (name "IO10"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "14"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin bidirectional line
+        (at 17.78 -7.62 180)
+        (length 2.54)
+        (name "IO20/RX0"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "15"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin bidirectional line
+        (at 17.78 -10.16 180)
+        (length 2.54)
+        (name "IO21/TX0"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "16"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin passive line
+        (at 0 -15.24 90)
+        (length 2.54)
+        (name "GND"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "2"
+          (effects
+            (font
+              (size 1.27 1.27)))))))
+  (symbol "E220-900T22S_JP-EV2"
+    (in_bom yes)
+    (on_board yes)
+    (property "Reference" "A"
+      (at -10.16 13.97 0)
+      (effects
+        (font
+          (size 1.27 1.27))
+        (justify left bottom)))
+    (property "Value" "E220-900T22S(JP)-EV2"
+      (at -10.16 11.43 0)
+      (effects
+        (font
+          (size 1.27 1.27))
+        (justify left bottom)))
+    (property "Footprint" "e220_carrier:E220-EV2_Socket"
+      (at 0 0 0)
+      (effects
+        (font
+          (size 1.27 1.27)) hide))
+    (property "Datasheet" "https://dragon-torch.tech/rf-modules/lora/e220-900t22s-jp-ev2/"
+      (at 0 0 0)
+      (effects
+        (font
+          (size 1.27 1.27)) hide))
+    (property "ki_description" "E220-900T22S(JP) LoRa evaluation board with SMA, 1x7 header"
+      (at 0 0 0)
+      (effects
+        (font
+          (size 1.27 1.27)) hide))
+    (symbol "E220-900T22S_JP-EV2_0_1"
+      (rectangle
+        (start -10.16 10.16)
+        (end 10.16 -10.16)
+        (stroke
+          (width 0.254)
+          (type default))
+        (fill
+          (type background))))
+    (symbol "E220-900T22S_JP-EV2_1_1"
+      (pin power_in line
+        (at -12.7 7.62 0)
+        (length 2.54)
+        (name "VCC"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "6"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin input line
+        (at -12.7 2.54 0)
+        (length 2.54)
+        (name "M0"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "1"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin input line
+        (at -12.7 0 0)
+        (length 2.54)
+        (name "M1"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "2"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin input line
+        (at -12.7 -2.54 0)
+        (length 2.54)
+        (name "RXD"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "3"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin output line
+        (at -12.7 -5.08 0)
+        (length 2.54)
+        (name "TXD"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "4"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin output line
+        (at -12.7 -7.62 0)
+        (length 2.54)
+        (name "AUX"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "5"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin power_in line
+        (at 0 -12.7 90)
+        (length 2.54)
+        (name "GND"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "7"
+          (effects
+            (font
+              (size 1.27 1.27)))))))
+  (symbol "MT3608_Module"
+    (in_bom yes)
+    (on_board yes)
+    (property "Reference" "A"
+      (at -7.62 8.89 0)
+      (effects
+        (font
+          (size 1.27 1.27))
+        (justify left bottom)))
+    (property "Value" "MT3608 module"
+      (at -7.62 6.35 0)
+      (effects
+        (font
+          (size 1.27 1.27))
+        (justify left bottom)))
+    (property "Footprint" "e220_carrier:MT3608_Module_Wired"
+      (at 0 0 0)
+      (effects
+        (font
+          (size 1.27 1.27)) hide))
+    (property "Datasheet" ""
+      (at 0 0 0)
+      (effects
+        (font
+          (size 1.27 1.27)) hide))
+    (property "ki_description" "MT3608 boost module, trimmer set to 24 V"
+      (at 0 0 0)
+      (effects
+        (font
+          (size 1.27 1.27)) hide))
+    (symbol "MT3608_Module_0_1"
+      (rectangle
+        (start -7.62 5.08)
+        (end 7.62 -2.54)
+        (stroke
+          (width 0.254)
+          (type default))
+        (fill
+          (type background))))
+    (symbol "MT3608_Module_1_1"
+      (pin power_in line
+        (at -10.16 2.54 0)
+        (length 2.54)
+        (name "IN+"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "1"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin power_in line
+        (at -10.16 0 0)
+        (length 2.54)
+        (name "IN-"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "2"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin power_out line
+        (at 10.16 2.54 180)
+        (length 2.54)
+        (name "OUT+"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "3"
+          (effects
+            (font
+              (size 1.27 1.27)))))
+      (pin passive line
+        (at 10.16 0 180)
+        (length 2.54)
+        (name "OUT-"
+          (effects
+            (font
+              (size 1.27 1.27))))
+        (number "4"
+          (effects
+            (font
+              (size 1.27 1.27))))))))
